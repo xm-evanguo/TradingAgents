@@ -154,7 +154,6 @@ def select_shallow_thinking_agent(provider) -> str:
         ],
         "deepseek": [
             ("DeepSeek V3 ", "deepseek-chat"),
-            ("DeepSeek R1", "deepseek-reasoner"),
         ]
     }
 
@@ -218,7 +217,6 @@ def select_deep_thinking_agent(provider) -> str:
             ("qwen3", "qwen3"),
         ],
         "deepseek": [
-            ("DeepSeek V3", "deepseek-chat"),
             ("Deepseek R1", "deepseek-reasoner"),
         ]
     }
@@ -249,11 +247,12 @@ def select_llm_provider() -> tuple[str, str]:
     """Select the OpenAI api url using interactive selection."""
     # Define OpenAI api options with their corresponding endpoints
     BASE_URLS = [
+        ("DeepSeek", "https://api.deepseek.com/v1"),
         ("OpenAI", "https://api.openai.com/v1"),
         ("Anthropic", "https://api.anthropic.com/"),
         ("Google", "https://generativelanguage.googleapis.com/v1"),
         ("Openrouter", "https://openrouter.ai/api/v1"),
-        ("Ollama", "http://localhost:11434/v1"),        
+        ("Ollama", "http://localhost:11434/v1")
     ]
     
     choice = questionary.select(
