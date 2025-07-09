@@ -16,6 +16,7 @@ from openai import OpenAI
 from .config import get_config, set_config, DATA_DIR
 from google import genai
 from google.genai import types
+from .social_media_utils import get_stock_news
 
 
 def get_finnhub_news(
@@ -705,26 +706,19 @@ def get_YFin_data(
 
 
 def get_stock_news_openai(ticker, curr_date):
-    client = genai.Client(api_key=os.getenv('GEMINI_API_KEY'))
-    grounding_tool = types.Tool(
-        google_search=types.GoogleSearch()
-    )
-
-    config = types.GenerateContentConfig(
-        tools=[grounding_tool],
-        system_instruction=f"Can you search Social Media for {ticker} from 7 days before {curr_date} to {curr_date}? Make sure you only get the data posted during that period.",
-        temperature=1,
-        max_output_tokens=4096,
-        top_p=1,
-    )
-
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents="",
-        config=config
-    )
-
-    return response.text
+    """
+    Get stock social media news and sentiment using Grok (X/Twitter)
+    
+    Note: Perplexity Reddit analysis is currently disabled in production.
+    
+    Args:
+        ticker (str): Stock ticker symbol
+        curr_date (str): Current date in yyyy-mm-dd format
+        
+    Returns:
+        str: Social media analysis and sentiment report from X/Twitter
+    """
+    return get_stock_news(ticker, curr_date)
 
 
 def get_global_news_openai(curr_date):

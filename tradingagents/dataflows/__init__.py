@@ -4,6 +4,7 @@ from .yfin_utils import YFinanceUtils
 from .reddit_utils import fetch_top_from_category
 from .stockstats_utils import StockstatsUtils
 from .yfin_utils import YFinanceUtils
+from .social_media_utils import get_stock_news
 
 from .interface import (
     # News and sentiment functions
@@ -33,6 +34,7 @@ __all__ = [
     "get_google_news",
     "get_reddit_global_news",
     "get_reddit_company_news",
+    "get_stock_news",
     # Financial statements functions
     "get_simfin_balance_sheet",
     "get_simfin_cashflow",

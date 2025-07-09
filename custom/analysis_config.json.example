@@ -1,0 +1,49 @@
+{
+  "tickers": [
+    "SPY",
+    "QQQ", 
+    "AAPL",
+    "GOOGL",
+    "MSFT",
+    "TSLA",
+    "NVDA",
+    "AMZN",
+    "META"
+  ],
+  "analysis_settings": {
+    "analysts": ["market", "news", "fundamentals"],
+    "research_depth": "shallow",
+    "llm_provider": "openai",
+    "shallow_model": null,
+    "deep_model": null,
+    "backend_url": null,
+    "debug": false
+  },
+  "email_settings": {
+    "enabled": false,
+    "recipients": [
+      "your-email@example.com"
+    ],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "sender_email": "your-sender@gmail.com",
+    "sender_password": "your-app-password",
+    "subject_template": "TradingAgents Analysis Results - {date}",
+    "use_tls": true
+  },
+  "output_settings": {
+    "save_individual_results": true,
+    "save_summary": true,
+    "results_directory": "batch_results"
+  },
+  "schedule_settings": {
+    "time_window": {
+      "start": "17:00",
+      "end": "23:59"
+    },
+    "custom_holidays": {
+      "2025-12-24": "Christmas Eve (Custom)",
+      "2025-12-31": "New Year's Eve (Custom)"
+    }
+  }
+}
