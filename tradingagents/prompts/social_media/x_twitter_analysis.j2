@@ -1,0 +1,131 @@
+Analyze X/Twitter sentiment for {{ ticker }} from {{ start_date }} to {{ end_date }}.
+
+Focus on company-specific discussions, earnings reactions, product launches, analyst upgrades/downgrades, management commentary, competitive dynamics, and retail vs institutional sentiment. Provide comprehensive analysis covering both technical trading patterns and fundamental business developments.
+
+Return ONLY a structured JSON object with the following format:
+{
+  "platform": "X/Twitter",
+  "symbol": "{{ ticker }}",
+  "analysis_period": "{{ start_date }} to {{ end_date }}",
+  "data_quality": {
+    "sample_size": <number>,
+    "confidence_level": "high|medium|low",
+    "data_completeness": <percentage>,
+    "bot_filter_applied": <boolean>,
+    "verification_score": <number>
+  },
+  "sentiment_distribution": {
+    "bullish_percent": <number>,
+    "bearish_percent": <number>,
+    "neutral_percent": <number>,
+    "sentiment_intensity": "strong|moderate|weak",
+    "sentiment_volatility": <number>,
+    "retail_vs_institutional_bias": "retail_bullish|institutional_bullish|neutral|mixed"
+  },
+  "temporal_analysis": {
+    "daily_sentiment_trend": [
+      {
+        "date": "<YYYY-MM-DD>",
+        "bullish_percent": <number>,
+        "volume": <number>,
+        "key_events": ["<event1>", "<event2>"],
+        "sentiment_drivers": ["earnings|news|technical|speculation"]
+      }
+    ],
+    "sentiment_momentum": {
+      "direction": "increasing|decreasing|stable",
+      "strength": "strong|moderate|weak",
+      "acceleration": "accelerating|decelerating|stable",
+      "trend_consistency": <number>
+    },
+    "intraday_patterns": {
+      "pre_market_sentiment": "bullish|bearish|neutral",
+      "trading_hours_shift": "positive|negative|stable",
+      "after_hours_sentiment": "bullish|bearish|neutral"
+    }
+  },
+  "engagement_metrics": {
+    "total_tweets": <number>,
+    "total_impressions": <number>,
+    "peak_engagement_day": "<date>",
+    "average_likes_per_tweet": <number>,
+    "average_retweets_per_tweet": <number>,
+    "average_replies_per_tweet": <number>,
+    "viral_tweet_threshold_reached": <boolean>,
+    "influencer_participation": <number>,
+    "financial_media_coverage": <number>
+  },
+  "content_analysis": {
+    "key_themes": [
+      {
+        "theme": "<theme_name>",
+        "frequency_percent": <number>,
+        "sentiment": "bullish|bearish|neutral",
+        "impact_score": <number>,
+        "related_events": ["<event1>", "<event2>"],
+        "theme_evolution": "growing|declining|stable"
+      }
+    ],
+    "discussion_categories": {
+      "technical_analysis_percent": <number>,
+      "fundamental_analysis_percent": <number>,
+      "earnings_reaction_percent": <number>,
+      "news_reaction_percent": <number>,
+      "speculation_percent": <number>,
+      "meme_content_percent": <number>
+    },
+    "sentiment_drivers": [
+      {
+        "driver": "<driver_name>",
+        "impact_weight": <number>,
+        "sentiment_direction": "bullish|bearish|neutral",
+        "timeframe": "immediate|short_term|long_term"
+      }
+    ]
+  },
+  "notable_content": [
+    {
+      "type": "influential_tweet|viral_content|analyst_opinion|earnings_reaction|product_announcement|management_comment",
+      "content_summary": "<brief_description>",
+      "author_type": "retail_trader|professional_analyst|financial_institution|company_insider|financial_media|influencer|unknown",
+      "engagement_score": <number>,
+      "sentiment_impact": "high|medium|low",
+      "credibility_score": "high|medium|low",
+      "market_moving_potential": "high|medium|low",
+      "fact_check_status": "verified|unverified|disputed"
+    }
+  ],
+  "trending_hashtags": ["<hashtag1>", "<hashtag2>"],
+  "company_specific_factors": {
+    "earnings_sentiment": "positive|negative|mixed|pre_earnings",
+    "management_mentions": <number>,
+    "product_discussions": ["<product1>", "<product2>"],
+    "competitive_comparisons": ["<competitor1>", "<competitor2>"],
+    "regulatory_concerns": ["<concern1>", "<concern2>"],
+    "esg_discussions": <boolean>
+  },
+  "trading_sentiment": {
+    "position_bias": "long|short|neutral",
+    "options_activity_mentions": <number>,
+    "short_squeeze_speculation": <boolean>,
+    "diamond_hands_sentiment": <number>,
+    "profit_taking_mentions": <number>,
+    "buy_the_dip_sentiment": <number>,
+    "price_targets_mentioned": [<target1>, <target2>]
+  },
+  "risk_factors_mentioned": ["<factor1>", "<factor2>"],
+  "price_catalysts_discussed": ["<catalyst1>", "<catalyst2>"],
+  "predictive_indicators": {
+    "sentiment_divergence_from_price": <boolean>,
+    "unusual_volume_spike": <boolean>,
+    "consensus_level": "strong_bullish|weak_bullish|divided|weak_bearish|strong_bearish",
+    "contrarian_signals": ["<signal1>", "<signal2>"],
+    "momentum_indicators": ["<indicator1>", "<indicator2>"]
+  },
+  "institutional_vs_retail": {
+    "retail_sentiment": "bullish|bearish|neutral",
+    "institutional_sentiment": "bullish|bearish|neutral",
+    "sentiment_alignment": "aligned|divergent|mixed",
+    "smart_money_signals": ["<signal1>", "<signal2>"]
+  }
+}

@@ -8,16 +8,16 @@ DEFAULT_CONFIG = {
         "dataflows/data_cache",
     ),
     # LLM settings
-    "llm_provider": "openai",
-    "deep_think_llm": "gpt-5.2",
-    "quick_think_llm": "gpt-5-mini",
-    "backend_url": "https://api.openai.com/v1",
+    "llm_provider": "google",
+    "deep_think_llm": "gemini-3.1-pro-preview",
+    "quick_think_llm": "gemini-3.1-flash-preview",
+    "backend_url": "https://generativelanguage.googleapis.com/v1",
     # Provider-specific thinking configuration
-    "google_thinking_level": None,      # "high", "minimal", etc.
+    "google_thinking_level": "high",      # "high", "minimal", etc.
     "openai_reasoning_effort": None,    # "medium", "high", "low"
     # Debate and discussion settings
-    "max_debate_rounds": 1,
-    "max_risk_discuss_rounds": 1,
+    "max_debate_rounds": 3,
+    "max_risk_discuss_rounds": 3,
     "max_recur_limit": 100,
     # Data vendor configuration
     # Category-level configuration (default for all tools in category)
@@ -26,6 +26,7 @@ DEFAULT_CONFIG = {
         "technical_indicators": "yfinance",  # Options: alpha_vantage, yfinance
         "fundamental_data": "yfinance",      # Options: alpha_vantage, yfinance
         "news_data": "yfinance",             # Options: alpha_vantage, yfinance
+        "social_media": "grok",              # Options: grok (requires XAI_API_KEY)
     },
     # Tool-level configuration (takes precedence over category-level)
     "tool_vendors": {

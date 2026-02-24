@@ -1,0 +1,47 @@
+{
+  "tickers": [
+    "EURUSD=X",
+    "AAPL"
+  ],
+  "analysis_settings": {
+    "analysts": ["market", "news", "fundamentals"],
+    "research_depth": "shallow",
+    "llm_provider": "openai",
+    "quick_think_llm": "o4-mini",
+    "deep_think_llm": "o3",
+    "quick_think_provider": "openai",
+    "deep_think_provider": "openai",
+    "quick_think_backend_url": "https://api.openai.com/v1",
+    "deep_think_backend_url": "https://api.openai.com/v1",
+    "max_debate_rounds": 1,
+    "online_tools": true,
+    "debug": false
+  },
+  "email_settings": {
+    "enabled": false,
+    "recipients": [
+      "evanguo97@gmail.com"
+    ],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 587,
+    "sender_email": "evanguo97@gmail.com",
+    "sender_password": "fmxq yasl bbuu oufu",
+    "subject_template": "TradingAgents Analysis Results - {date}",
+    "use_tls": true
+  },
+  "output_settings": {
+    "save_individual_results": true,
+    "save_summary": true,
+    "results_directory": "batch_results"
+  },
+  "schedule_settings": {
+    "time_window": {
+      "start": "17:00",
+      "end": "23:59"
+    },
+    "custom_holidays": {
+      "2025-12-24": "Christmas Eve (Custom)",
+      "2025-12-31": "New Year's Eve (Custom)"
+    }
+  }
+}

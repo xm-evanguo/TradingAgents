@@ -12,6 +12,8 @@ backtrader
 parsel
 requests
 tqdm
+jinja2
+python-dateutil
 pytz
 redis
 chainlit
