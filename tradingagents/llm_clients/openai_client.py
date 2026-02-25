@@ -14,8 +14,28 @@ class UnifiedChatOpenAI(ChatOpenAI):
         model = kwargs.get("model", "")
         if self._is_reasoning_model(model):
             kwargs.pop("temperature", None)
-            kwargs.pop("top_p", None)
         super().__init__(**kwargs)
+
+    def _get_request_payload(self, input_, *, stop=None, **kwargs):
+        """Intercept the payload to inject empty reasoning_content for kimi if missing."""
+        from langchain_core.language_models import LanguageModelInput
+        
+        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        
+        if "kimi" in self.model_name.lower():
+            # Kimi models with thinking enabled require reasoning_content on assistant messages
+            # even when they are just performing tool calls.
+            for msg_dict in payload.get("messages", []):
+                if msg_dict.get("role") == "assistant" and msg_dict.get("tool_calls"):
+                    if "reasoning_content" not in msg_dict or not msg_dict["reasoning_content"]:
+                        msg_dict["reasoning_content"] = "Thinking..."
+            
+            print("\n[DEBUG] Kimi Payload Messages:")
+            import json
+            with open(".payload.json", "w") as f:
+                json.dump(payload.get("messages", []), f, indent=2)
+                        
+        return payload
 
     @staticmethod
     def _is_reasoning_model(model: str) -> bool:
@@ -29,7 +49,7 @@ class UnifiedChatOpenAI(ChatOpenAI):
 
 
 class OpenAIClient(BaseLLMClient):
-    """Client for OpenAI, Ollama, OpenRouter, and xAI providers."""
+    """Client for OpenAI, Ollama, OpenRouter, xAI, and Codex OAuth providers."""
 
     def __init__(
         self,
@@ -55,9 +75,22 @@ class OpenAIClient(BaseLLMClient):
             api_key = os.environ.get("OPENROUTER_API_KEY")
             if api_key:
                 llm_kwargs["api_key"] = api_key
-        elif self.provider == "ollama":
-            llm_kwargs["base_url"] = "http://localhost:11434/v1"
-            llm_kwargs["api_key"] = "ollama"  # Ollama doesn't require auth
+        elif self.provider == "kimi":
+            # The CLI might pass in a broken kimi url, ignore it
+            passed_url = self.base_url
+            if not passed_url or "api.kimi.ai" in passed_url or "api.moonshot.cn" in passed_url:
+                llm_kwargs["base_url"] = "https://api.moonshot.ai/v1"
+            else:
+                llm_kwargs["base_url"] = passed_url
+                
+            api_key = os.environ.get("MOONSHOT_API_KEY")
+            if api_key:
+                llm_kwargs["api_key"] = api_key
+        elif self.provider == "deepseek":
+            llm_kwargs["base_url"] = "https://api.deepseek.com/v1"
+            api_key = os.environ.get("DEEPSEEK_API_KEY")
+            if api_key:
+                llm_kwargs["api_key"] = api_key
         elif self.base_url:
             llm_kwargs["base_url"] = self.base_url
 

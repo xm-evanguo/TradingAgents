@@ -63,8 +63,14 @@ VALID_MODELS = {
         # "grok-4-fast-reasoning",
         # "grok-4-fast-non-reasoning",
     ],
+    "kimi": [
+        "kimi-k2.5",
+    ],
+    "deepseek": [
+        "deepseek-chat",
+        "deepseek-reasoner",
+    ],
 }
-
 
 def validate_model(provider: str, model: str) -> bool:
     """Check if model name is valid for the given provider.

@@ -95,9 +95,8 @@ def select_research_depth() -> int:
 
     # Define research depth options with their corresponding values
     DEPTH_OPTIONS = [
-        ("Shallow - Quick research, few debate and strategy discussion rounds", 1),
-        ("Medium - Middle ground, moderate debate rounds and strategy discussion", 3),
         ("Deep - Comprehensive research, in depth debate and strategy discussion", 5),
+        ("Shallow - Quick research, few debate and strategy discussion rounds", 1),
     ]
 
     choice = questionary.select(
@@ -130,35 +129,15 @@ def select_shallow_thinking_agent(provider) -> str:
         "openai": [
             ("GPT-5 Mini - Cost-optimized reasoning", "gpt-5-mini"),
             ("GPT-5 Nano - Ultra-fast, high-throughput", "gpt-5-nano"),
-            ("GPT-5.2 - Latest flagship", "gpt-5.2"),
-            ("GPT-5.1 - Flexible reasoning", "gpt-5.1"),
-            ("GPT-4.1 - Smartest non-reasoning, 1M context", "gpt-4.1"),
-        ],
-        "anthropic": [
-            ("Claude Haiku 4.5 - Fast + extended thinking", "claude-haiku-4-5"),
-            ("Claude Sonnet 4.5 - Best for agents/coding", "claude-sonnet-4-5"),
-            ("Claude Sonnet 4 - High-performance", "claude-sonnet-4-20250514"),
         ],
         "google": [
             ("Gemini 3 Flash - Next-gen fast", "gemini-3-flash-preview"),
-            ("Gemini 2.5 Flash - Balanced, recommended", "gemini-2.5-flash"),
-            ("Gemini 3 Pro - Reasoning-first", "gemini-3-pro-preview"),
-            ("Gemini 2.5 Flash Lite - Fast, low-cost", "gemini-2.5-flash-lite"),
         ],
-        "xai": [
-            ("Grok 4.1 Fast (Non-Reasoning) - Speed optimized, 2M ctx", "grok-4-1-fast-non-reasoning"),
-            ("Grok 4 Fast (Non-Reasoning) - Speed optimized", "grok-4-fast-non-reasoning"),
-            ("Grok 4.1 Fast (Reasoning) - High-performance, 2M ctx", "grok-4-1-fast-reasoning"),
-            ("Grok 4 Fast (Reasoning) - High-performance", "grok-4-fast-reasoning"),
+        "kimi": [
+            ("Kimi K2.5 - Reasoning-first", "kimi-k2.5"),
         ],
-        "openrouter": [
-            ("NVIDIA Nemotron 3 Nano 30B (free)", "nvidia/nemotron-3-nano-30b-a3b:free"),
-            ("Z.AI GLM 4.5 Air (free)", "z-ai/glm-4.5-air:free"),
-        ],
-        "ollama": [
-            ("Qwen3:latest (8B, local)", "qwen3:latest"),
-            ("GPT-OSS:latest (20B, local)", "gpt-oss:latest"),
-            ("GLM-4.7-Flash:latest (30B, local)", "glm-4.7-flash:latest"),
+        "deepseek": [
+            ("DeepSeek V3 - Chat model", "deepseek-chat"),
         ],
     }
 
@@ -194,39 +173,18 @@ def select_deep_thinking_agent(provider) -> str:
     DEEP_AGENT_OPTIONS = {
         "openai": [
             ("GPT-5.2 - Latest flagship", "gpt-5.2"),
-            ("GPT-5.1 - Flexible reasoning", "gpt-5.1"),
-            ("GPT-5 - Advanced reasoning", "gpt-5"),
-            ("GPT-4.1 - Smartest non-reasoning, 1M context", "gpt-4.1"),
-            ("GPT-5 Mini - Cost-optimized reasoning", "gpt-5-mini"),
             ("GPT-5 Nano - Ultra-fast, high-throughput", "gpt-5-nano"),
-        ],
-        "anthropic": [
-            ("Claude Sonnet 4.5 - Best for agents/coding", "claude-sonnet-4-5"),
-            ("Claude Opus 4.5 - Premium, max intelligence", "claude-opus-4-5"),
-            ("Claude Opus 4.1 - Most capable model", "claude-opus-4-1-20250805"),
-            ("Claude Haiku 4.5 - Fast + extended thinking", "claude-haiku-4-5"),
-            ("Claude Sonnet 4 - High-performance", "claude-sonnet-4-20250514"),
         ],
         "google": [
             ("Gemini 3 Pro - Reasoning-first", "gemini-3-pro-preview"),
             ("Gemini 3 Flash - Next-gen fast", "gemini-3-flash-preview"),
-            ("Gemini 2.5 Flash - Balanced, recommended", "gemini-2.5-flash"),
         ],
-        "xai": [
-            ("Grok 4.1 Fast (Reasoning) - High-performance, 2M ctx", "grok-4-1-fast-reasoning"),
-            ("Grok 4 Fast (Reasoning) - High-performance", "grok-4-fast-reasoning"),
-            ("Grok 4 - Flagship model", "grok-4-0709"),
-            ("Grok 4.1 Fast (Non-Reasoning) - Speed optimized, 2M ctx", "grok-4-1-fast-non-reasoning"),
-            ("Grok 4 Fast (Non-Reasoning) - Speed optimized", "grok-4-fast-non-reasoning"),
+        "kimi": [
+            ("Kimi K2.5 - Reasoning-first", "kimi-k2.5"),
         ],
-        "openrouter": [
-            ("Z.AI GLM 4.5 Air (free)", "z-ai/glm-4.5-air:free"),
-            ("NVIDIA Nemotron 3 Nano 30B (free)", "nvidia/nemotron-3-nano-30b-a3b:free"),
-        ],
-        "ollama": [
-            ("GLM-4.7-Flash:latest (30B, local)", "glm-4.7-flash:latest"),
-            ("GPT-OSS:latest (20B, local)", "gpt-oss:latest"),
-            ("Qwen3:latest (8B, local)", "qwen3:latest"),
+        "deepseek": [
+            ("DeepSeek R1 - Reasoning-first", "deepseek-reasoner"),
+            ("DeepSeek V3 - Chat model", "deepseek-chat"),
         ],
     }
 
@@ -258,10 +216,8 @@ def select_llm_provider() -> tuple[str, str]:
     BASE_URLS = [
         ("OpenAI", "https://api.openai.com/v1"),
         ("Google", "https://generativelanguage.googleapis.com/v1"),
-        ("Anthropic", "https://api.anthropic.com/"),
-        ("xAI", "https://api.x.ai/v1"),
-        ("Openrouter", "https://openrouter.ai/api/v1"),
-        ("Ollama", "http://localhost:11434/v1"),
+        ("Kimi", "https://api.moonshot.ai/v1"),
+        ("DeepSeek", "https://api.deepseek.com/v1"),
     ]
     
     choice = questionary.select(

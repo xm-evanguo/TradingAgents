@@ -8,10 +8,12 @@ DEFAULT_CONFIG = {
         "dataflows/data_cache",
     ),
     # LLM settings
-    "llm_provider": "google",
-    "deep_think_llm": "gemini-3.1-pro-preview",
-    "quick_think_llm": "gemini-3.1-flash-preview",
-    "backend_url": "https://generativelanguage.googleapis.com/v1",
+    # Providers: google, openai, anthropic, xai, ollama, openrouter,
+    #            gemini-cli (OAuth via Gemini CLI), codex (OAuth via Codex CLI), kimi, deepseek
+    "llm_provider": "codex",
+    "deep_think_llm": "gpt-5-mini",
+    "quick_think_llm": "gpt-5-mini",
+    "backend_url": None,
     # Provider-specific thinking configuration
     "google_thinking_level": "high",      # "high", "minimal", etc.
     "openai_reasoning_effort": None,    # "medium", "high", "low"
