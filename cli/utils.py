@@ -124,28 +124,47 @@ def select_research_depth() -> int:
 def select_shallow_thinking_agent(provider) -> str:
     """Select shallow thinking llm engine using an interactive selection."""
 
-    # Define shallow thinking llm engine options with their corresponding model names
     SHALLOW_AGENT_OPTIONS = {
+        "google-gemini-cli": [
+            ("Gemini 2.5 Flash (Cloud Code Assist, free OAuth)", "gemini-2.5-flash"),
+            ("Gemini 2.0 Flash (Cloud Code Assist, free OAuth)", "gemini-2.0-flash"),
+        ],
+        "codex": [
+            ("GPT-5.1 Codex Mini (Subscription OAuth)", "gpt-5.1-codex-mini"),
+            ("GPT-5.1 (Subscription OAuth)", "gpt-5.1"),
+        ],
         "openai": [
             ("GPT-5 Mini - Cost-optimized reasoning", "gpt-5-mini"),
             ("GPT-5 Nano - Ultra-fast, high-throughput", "gpt-5-nano"),
+            ("GPT-4.1 Mini", "gpt-4.1-mini"),
         ],
         "google": [
             ("Gemini 3 Flash - Next-gen fast", "gemini-3-flash-preview"),
+            ("Gemini 2.5 Flash", "gemini-2.5-flash"),
+        ],
+        "xai": [
+            ("Grok 4 Fast Non-Reasoning", "grok-4-fast-non-reasoning"),
+            ("Grok 3 Fast", "grok-3-fast"),
         ],
         "kimi": [
-            ("Kimi K2.5 - Reasoning-first", "kimi-k2.5"),
+            ("Kimi K2 p5 - Lightweight reasoning", "k2p5"),
         ],
         "deepseek": [
             ("DeepSeek V3 - Chat model", "deepseek-chat"),
         ],
     }
 
+    provider_key = provider.lower()
+    options = SHALLOW_AGENT_OPTIONS.get(provider_key, [])
+    if not options:
+        console.print(f"\n[red]No shallow thinking models configured for provider: {provider}[/red]")
+        exit(1)
+
     choice = questionary.select(
         "Select Your [Quick-Thinking LLM Engine]:",
         choices=[
             questionary.Choice(display, value=value)
-            for display, value in SHALLOW_AGENT_OPTIONS[provider.lower()]
+            for display, value in options
         ],
         instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
@@ -169,18 +188,35 @@ def select_shallow_thinking_agent(provider) -> str:
 def select_deep_thinking_agent(provider) -> str:
     """Select deep thinking llm engine using an interactive selection."""
 
-    # Define deep thinking llm engine options with their corresponding model names
     DEEP_AGENT_OPTIONS = {
+        "google-gemini-cli": [
+            ("Gemini 2.5 Pro (Cloud Code Assist, free OAuth)", "gemini-2.5-pro"),
+            ("Gemini 3 Pro Preview (Cloud Code Assist, free OAuth)", "gemini-3-pro-preview"),
+            ("Gemini 2.5 Flash (Cloud Code Assist, free OAuth)", "gemini-2.5-flash"),
+        ],
+        "codex": [
+            ("GPT-5.2 Codex (Subscription OAuth)", "gpt-5.2-codex"),
+            ("GPT-5.2 (Subscription OAuth)", "gpt-5.2"),
+            ("GPT-5.3 Codex (Subscription OAuth)", "gpt-5.3-codex"),
+        ],
         "openai": [
             ("GPT-5.2 - Latest flagship", "gpt-5.2"),
-            ("GPT-5 Nano - Ultra-fast, high-throughput", "gpt-5-nano"),
+            ("GPT-5 Mini - Cost-optimized reasoning", "gpt-5-mini"),
+            ("GPT-4.1 - Frontier", "gpt-4.1"),
         ],
         "google": [
             ("Gemini 3 Pro - Reasoning-first", "gemini-3-pro-preview"),
-            ("Gemini 3 Flash - Next-gen fast", "gemini-3-flash-preview"),
+            ("Gemini 3.1 Pro Preview", "gemini-3.1-pro-preview"),
+            ("Gemini 2.5 Pro", "gemini-2.5-pro"),
+        ],
+        "xai": [
+            ("Grok 4 - Flagship", "grok-4"),
+            ("Grok 4 Fast", "grok-4-fast"),
+            ("Grok 3 - Previous generation", "grok-3"),
         ],
         "kimi": [
-            ("Kimi K2.5 - Reasoning-first", "kimi-k2.5"),
+            ("Kimi K2 Thinking - Reasoning-first", "kimi-k2-thinking"),
+            ("Kimi K2 p5", "k2p5"),
         ],
         "deepseek": [
             ("DeepSeek R1 - Reasoning-first", "deepseek-reasoner"),
@@ -188,11 +224,17 @@ def select_deep_thinking_agent(provider) -> str:
         ],
     }
 
+    provider_key = provider.lower()
+    options = DEEP_AGENT_OPTIONS.get(provider_key, [])
+    if not options:
+        console.print(f"\n[red]No deep thinking models configured for provider: {provider}[/red]")
+        exit(1)
+
     choice = questionary.select(
         "Select Your [Deep-Thinking LLM Engine]:",
         choices=[
             questionary.Choice(display, value=value)
-            for display, value in DEEP_AGENT_OPTIONS[provider.lower()]
+            for display, value in options
         ],
         instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
@@ -211,20 +253,26 @@ def select_deep_thinking_agent(provider) -> str:
     return choice
 
 def select_llm_provider() -> tuple[str, str]:
-    """Select the OpenAI api url using interactive selection."""
-    # Define OpenAI api options with their corresponding endpoints
-    BASE_URLS = [
-        ("OpenAI", "https://api.openai.com/v1"),
-        ("Google", "https://generativelanguage.googleapis.com/v1"),
-        ("Kimi", "https://api.moonshot.ai/v1"),
-        ("DeepSeek", "https://api.deepseek.com/v1"),
+    """Select the LLM provider using interactive selection.
+
+    Returns (provider_key, backend_url).  All providers except DeepSeek are
+    backed by the pi-ai-server; the backend_url is informational only.
+    """
+    PROVIDER_OPTIONS = [
+        ("Google Gemini CLI  (OAuth, Free - via pi-ai-server)", "google-gemini-cli", ""),
+        ("OpenAI Codex       (OAuth, Subscription - via pi-ai-server)", "codex", ""),
+        ("OpenAI             (API Key - via pi-ai-server)", "openai", ""),
+        ("Google Gemini      (API Key - via pi-ai-server)", "google", ""),
+        ("xAI Grok           (API Key - via pi-ai-server)", "xai", ""),
+        ("Kimi               (API Key - via pi-ai-server)", "kimi", ""),
+        ("DeepSeek           (API Key - direct API)", "deepseek", "https://api.deepseek.com/v1"),
     ]
-    
+
     choice = questionary.select(
         "Select your LLM Provider:",
         choices=[
-            questionary.Choice(display, value=(display, value))
-            for display, value in BASE_URLS
+            questionary.Choice(display, value=(provider_key, url))
+            for display, provider_key, url in PROVIDER_OPTIONS
         ],
         instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
@@ -235,15 +283,15 @@ def select_llm_provider() -> tuple[str, str]:
             ]
         ),
     ).ask()
-    
-    if choice is None:
-        console.print("\n[red]no OpenAI backend selected. Exiting...[/red]")
-        exit(1)
-    
-    display_name, url = choice
-    print(f"You selected: {display_name}\tURL: {url}")
 
-    return display_name, url
+    if choice is None:
+        console.print("\n[red]No provider selected. Exiting...[/red]")
+        exit(1)
+
+    provider_key, url = choice
+    print(f"You selected: {provider_key}")
+
+    return provider_key, url
 
 
 def ask_openai_reasoning_effort() -> str:

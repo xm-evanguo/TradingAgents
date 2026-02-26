@@ -3,7 +3,34 @@ from typing import Optional
 from .base_client import BaseLLMClient
 from .openai_client import OpenAIClient
 from .anthropic_client import AnthropicClient
-from .google_client import GoogleClient
+from .pi_ai_client import PiAiClient
+
+
+# Providers routed through pi-ai-server
+_PI_AI_PROVIDERS = {
+    "google-gemini-cli",
+    "codex",          # maps to openai-codex in pi-ai
+    "openai",
+    "google",
+    "xai",
+    "kimi",           # maps to kimi-coding in pi-ai
+}
+
+# Map our provider names → pi-ai provider IDs
+_PROVIDER_TO_PI_AI: dict[str, str] = {
+    "google-gemini-cli": "google-gemini-cli",
+    "codex": "openai-codex",
+    "openai": "openai",
+    "google": "google",
+    "xai": "xai",
+    "kimi": "kimi-coding",
+}
+
+# Map our provider names → default model ID (when none supplied)
+_DEFAULT_MODELS: dict[str, str] = {
+    "google-gemini-cli": "gemini-2.5-flash",
+    "codex": "gpt-5.2",
+}
 
 
 def create_llm_client(
@@ -15,8 +42,8 @@ def create_llm_client(
     """Create an LLM client for the specified provider.
 
     Args:
-        provider: LLM provider (openai, anthropic, google, xai, ollama,
-                  openrouter, gemini-cli, codex)
+        provider: LLM provider (google-gemini-cli, codex, openai, google, xai,
+                  kimi, deepseek, ollama, openrouter, anthropic)
         model: Model name/identifier
         base_url: Optional base URL for API endpoint
         **kwargs: Additional provider-specific arguments
@@ -29,52 +56,40 @@ def create_llm_client(
     """
     provider_lower = provider.lower()
 
-    if provider_lower in ("openai", "ollama", "openrouter", "kimi", "deepseek"):
+    # ── pi-ai-server backed providers ────────────────────────────────────────
+    if provider_lower in _PI_AI_PROVIDERS:
+        pi_provider = _PROVIDER_TO_PI_AI[provider_lower]
+        model_id = model or _DEFAULT_MODELS.get(provider_lower, model)
+        return _PiAiClientAdapter(
+            model_id,
+            PiAiClient(
+                provider_id=pi_provider,
+                model_id=model_id,
+                temperature=kwargs.get("temperature"),
+                max_tokens=kwargs.get("max_output_tokens"),
+                reasoning=kwargs.get("thinking_level"),
+            ),
+        )
+
+    # ── Direct API providers ─────────────────────────────────────────────────
+    if provider_lower in ("deepseek", "ollama", "openrouter"):
         return OpenAIClient(model, base_url, provider=provider_lower, **kwargs)
-
-    if provider_lower == "xai":
-        return OpenAIClient(model, base_url, provider="xai", **kwargs)
-
-    if provider_lower == "codex":
-        from .oauth_utils import get_codex_access_token
-
-        token = get_codex_access_token()
-        kwargs["api_key"] = token
-        return OpenAIClient(model, base_url, provider="codex", **kwargs)
 
     if provider_lower == "anthropic":
         return AnthropicClient(model, base_url, **kwargs)
 
-    if provider_lower == "google":
-        return GoogleClient(model, base_url, **kwargs)
-
-    if provider_lower == "gemini-cli":
-        from .oauth_utils import get_gemini_cli_credentials
-        from .code_assist_client import ChatCodeAssist
-
-        creds = get_gemini_cli_credentials()
-        chat_model = ChatCodeAssist(
-            model=model,
-            access_token=creds.token,
-            temperature=kwargs.get("temperature"),
-            max_output_tokens=kwargs.get("max_output_tokens"),
-            thinking_budget=kwargs.get("thinking_budget"),
-        )
-        # Wrap in a BaseLLMClient-compatible adapter
-        return _CodeAssistClientAdapter(model, chat_model)
-
     raise ValueError(f"Unsupported LLM provider: {provider}")
 
 
-class _CodeAssistClientAdapter(BaseLLMClient):
-    """Adapter to make ChatCodeAssist compatible with the BaseLLMClient interface."""
+class _PiAiClientAdapter(BaseLLMClient):
+    """Adapter to make PiAiClient compatible with the BaseLLMClient interface."""
 
-    def __init__(self, model: str, chat_model):
+    def __init__(self, model: str, pi_ai_client: PiAiClient):
         super().__init__(model)
-        self._chat_model = chat_model
+        self._pi_ai_client = pi_ai_client
 
     def get_llm(self):
-        return self._chat_model
+        return self._pi_ai_client
 
     def validate_model(self) -> bool:
         return True

@@ -28,7 +28,7 @@
 # TradingAgents: Multi-Agents LLM Financial Trading Framework
 
 ## News
-- [2026-02] **TradingAgents v0.2.0** released with multi-provider LLM support (GPT-5.x, Gemini 3.x, Claude 4.x, Grok 4.x) and improved system architecture.
+- [2026-02] **TradingAgents v0.2.0** released with multi-provider LLM support and pi-ai-server integration for unified OAuth and API-key management.
 - [2026-01] **Trading-R1** [Technical Report](https://arxiv.org/abs/2509.11420) released, with [Terminal](https://github.com/TauricResearch/Trading-R1) expected to land soon.
 
 <div align="center">
@@ -118,23 +118,52 @@ pip install -r requirements.txt
 
 ### Required APIs
 
-TradingAgents supports multiple LLM providers. Set the API key for your chosen provider:
+TradingAgents uses **[pi-ai-server](https://github.com/xm-evanguo/pi-mono)** as a unified local HTTP proxy for LLM providers. It handles OAuth flows (Gemini CLI, OpenAI Codex) and API key routing automatically.
+
+#### 1. Build pi-ai-server
+
+```bash
+# Clone the pi-mono repository
+git clone https://github.com/xm-evanguo/pi-mono ~/code/pi-mono
+
+# Build both packages
+cd ~/code/pi-mono/packages/ai && npm install && npm run build
+cd ~/code/pi-mono/packages/ai-server && npm install && npm run build
+```
+
+#### 2. Authenticate (OAuth providers only)
+
+```bash
+# For Google Gemini CLI (free, via Google account)
+node ~/code/pi-mono/packages/ai/dist/cli.js login google-gemini-cli
+
+# For OpenAI Codex (requires ChatGPT Plus/Pro subscription)
+node ~/code/pi-mono/packages/ai/dist/cli.js login openai-codex
+```
+
+#### 3. Start pi-ai-server
+
+```bash
+node ~/code/pi-mono/packages/ai-server/dist/server.js
+# → pi-ai-server listening on http://127.0.0.1:3456
+```
+
+You must have pi-ai-server running whenever you use TradingAgents.
+
+#### 4. Set API keys (API-key providers only)
+
+For providers that require API keys, set the relevant environment variable:
 
 ```bash
 export OPENAI_API_KEY=...          # OpenAI (GPT)
-export GOOGLE_API_KEY=...          # Google (Gemini)
-export ANTHROPIC_API_KEY=...       # Anthropic (Claude)
+export GOOGLE_API_KEY=...          # Google (Gemini API)
 export XAI_API_KEY=...             # xAI (Grok)
-export OPENROUTER_API_KEY=...      # OpenRouter
-export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage
+export MOONSHOT_API_KEY=...        # Kimi
+export DEEPSEEK_API_KEY=...        # DeepSeek (direct API, no pi-ai-server needed)
+export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage (market data)
 ```
 
-For local models, configure Ollama with `llm_provider: "ollama"` in your config.
-
-Alternatively, copy `.env.example` to `.env` and fill in your keys:
-```bash
-cp .env.example .env
-```
+> **Note:** DeepSeek is the only provider that calls the API directly (pi-ai-server does not support it). All other providers are routed through pi-ai-server.
 
 ### CLI Usage
 
@@ -162,7 +191,7 @@ An interface will appear showing results as they load, letting you track the age
 
 ### Implementation Details
 
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers: OpenAI, Google, Anthropic, xAI, OpenRouter, and Ollama.
+We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, xAI, and Kimi. DeepSeek connects directly.
 
 ### Python Usage
 
@@ -186,9 +215,10 @@ from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
 config = DEFAULT_CONFIG.copy()
-config["llm_provider"] = "openai"        # openai, google, anthropic, xai, openrouter, ollama
-config["deep_think_llm"] = "gpt-5.2"     # Model for complex reasoning
-config["quick_think_llm"] = "gpt-5-mini" # Model for quick tasks
+# Providers: google-gemini-cli, codex, openai, google, xai, kimi, deepseek
+config["llm_provider"] = "google-gemini-cli"  # Free OAuth via pi-ai-server
+config["deep_think_llm"] = "gemini-2.5-pro"
+config["quick_think_llm"] = "gemini-2.5-flash"
 config["max_debate_rounds"] = 2
 
 ta = TradingAgentsGraph(debug=True, config=config)

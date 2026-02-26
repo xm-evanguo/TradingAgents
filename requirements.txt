@@ -21,5 +21,3 @@ rich
 typer
 questionary
 langchain_anthropic
-langchain-google-genai
-google-auth
