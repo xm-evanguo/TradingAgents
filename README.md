@@ -141,14 +141,35 @@ node ~/code/pi-mono/packages/ai/dist/cli.js login google-gemini-cli
 node ~/code/pi-mono/packages/ai/dist/cli.js login openai-codex
 ```
 
-#### 3. Start pi-ai-server
+#### 3. Start pi-ai-server (optional)
 
 ```bash
 node ~/code/pi-mono/packages/ai-server/dist/server.js
 # → pi-ai-server listening on http://127.0.0.1:3456
 ```
 
-You must have pi-ai-server running whenever you use TradingAgents.
+TradingAgents now auto-starts `pi-ai-server` when it detects OAuth-capable routing and
+`PI_AI_SERVER_URL` points to localhost. By default it looks for:
+
+- `~/code/pi-mono/packages/ai-server/dist/server.js`
+- or `~/code/pi-mono/packages/ai-server/src/server.ts`
+
+If your server lives elsewhere, configure:
+
+```bash
+export PI_AI_SERVER_CMD="node /absolute/path/to/packages/ai-server/dist/server.js"
+export PI_AI_SERVER_CWD="/absolute/path/to/pi-mono"
+```
+
+You can still start it manually and set a custom URL:
+
+```bash
+export PI_AI_SERVER_URL="http://127.0.0.1:3456"
+```
+
+If you want to use OAuth providers (Gemini CLI or OpenAI Codex), keep pi-ai-server reachable.
+If you only use direct API-key providers (MiniMax/DeepSeek) and do not rely on OAuth routes,
+pi-ai-server is optional.
 
 #### 4. Set API keys (API-key providers only)
 
@@ -160,10 +181,27 @@ export GOOGLE_API_KEY=...          # Google (Gemini API)
 export XAI_API_KEY=...             # xAI (Grok)
 export MOONSHOT_API_KEY=...        # Kimi
 export DEEPSEEK_API_KEY=...        # DeepSeek (direct API, no pi-ai-server needed)
+export MINIMAX_API_KEY=...         # MiniMax (direct API, no pi-ai-server needed)
 export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage (market data)
 ```
 
-> **Note:** DeepSeek is the only provider that calls the API directly (pi-ai-server does not support it). All other providers are routed through pi-ai-server.
+> **Note:** DeepSeek and MiniMax call APIs directly (pi-ai-server does not support them). Other providers are routed through pi-ai-server.
+
+### Automatic LLM Routing
+
+TradingAgents now auto-selects provider/model routes. The CLI no longer asks you to manually choose models.
+
+Routing priority:
+
+1. If OpenAI Codex OAuth is available, use:
+   - Deep: `codex:gpt-5.2`
+   - Quick: `codex:gpt-5.2`
+2. Else if Gemini CLI OAuth is available, use:
+   - Deep: `google-gemini-cli:gemini-3.1-pro-preview`
+   - Quick: `google-gemini-cli:gemini-3.1-flash-preview`
+3. Else use API-key providers by priority:
+   - `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek
+   - DeepSeek maps to `deepseek-reasoner` (deep) and `deepseek-chat` (quick)
 
 ### CLI Usage
 
@@ -171,7 +209,8 @@ You can also try out the CLI directly by running:
 ```bash
 python -m cli.main
 ```
-You will see a screen where you can select your desired tickers, date, LLMs, research depth, etc.
+You will see a screen where you can select tickers, date, analyst team, and research depth.
+LLM provider/model routing is resolved automatically from available auth/API keys.
 
 <p align="center">
   <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">
@@ -191,7 +230,7 @@ An interface will appear showing results as they load, letting you track the age
 
 ### Implementation Details
 
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, xAI, and Kimi. DeepSeek connects directly.
+We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, xAI, and Kimi. DeepSeek and MiniMax connect directly.
 
 ### Python Usage
 
@@ -208,17 +247,17 @@ _, decision = ta.propagate("NVDA", "2026-01-15")
 print(decision)
 ```
 
-You can also adjust the default configuration to set your own choice of LLMs, debate rounds, etc.
+You can also adjust configuration (for example debate rounds). By default, LLM routing is automatic.
 
 ```python
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
 
 config = DEFAULT_CONFIG.copy()
-# Providers: google-gemini-cli, codex, openai, google, xai, kimi, deepseek
-config["llm_provider"] = "google-gemini-cli"  # Free OAuth via pi-ai-server
-config["deep_think_llm"] = "gemini-2.5-pro"
-config["quick_think_llm"] = "gemini-2.5-flash"
+# Optional manual override (auto-routing is default)
+config["llm_provider"] = "deepseek"
+config["deep_think_llm"] = "deepseek-reasoner"
+config["quick_think_llm"] = "deepseek-chat"
 config["max_debate_rounds"] = 2
 
 ta = TradingAgentsGraph(debug=True, config=config)

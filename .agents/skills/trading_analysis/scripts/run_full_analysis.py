@@ -10,15 +10,12 @@ Usage:
 Options:
     --analysts   Comma-separated list of analysts to run (default: market,news,fundamentals)
                  Choices: market, news, fundamentals, social
-    --provider   LLM provider (default: from DEFAULT_CONFIG)
-    --quick-model  Quick-thinking LLM model name
-    --deep-model   Deep-thinking LLM model name
     --rounds     Max debate rounds (default: 1 for speed)
 
 Examples:
     python run_full_analysis.py NVDA 2026-02-25
     python run_full_analysis.py NVDA 2026-02-25 --analysts market,news,fundamentals
-    python run_full_analysis.py NVDA 2026-02-25 --provider openai --quick-model gpt-4o-mini --deep-model gpt-4o
+    python run_full_analysis.py NVDA 2026-02-25 --rounds 2
 """
 
 import sys
@@ -34,6 +31,7 @@ load_dotenv(project_root / ".env")
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.llm_clients.model_router import resolve_llm_plan
 
 
 def main():
@@ -45,9 +43,6 @@ def main():
         default="market,news,fundamentals",
         help="Comma-separated list of analysts to run (default: market,news,fundamentals)"
     )
-    parser.add_argument("--provider", help="LLM provider (e.g., openai, anthropic, deepseek)")
-    parser.add_argument("--quick-model", help="Model for quick-thinking tasks")
-    parser.add_argument("--deep-model", help="Model for deep-thinking tasks (debate, risk)")
     parser.add_argument("--rounds", type=int, default=1, help="Max debate/risk discussion rounds (default: 1)")
 
     args = parser.parse_args()
@@ -85,16 +80,22 @@ def main():
     config["max_debate_rounds"] = args.rounds
     config["max_risk_discuss_rounds"] = args.rounds
 
-    if args.provider:
-        config["llm_provider"] = args.provider
-    if args.quick_model:
-        config["quick_think_llm"] = args.quick_model
-    if args.deep_model:
-        config["deep_think_llm"] = args.deep_model
+    llm_plan = resolve_llm_plan()
+    config["llm_provider"] = llm_plan["deep_provider"]
+    config["deep_think_provider"] = llm_plan["deep_provider"]
+    config["quick_think_provider"] = llm_plan["quick_provider"]
+    config["deep_backend_url"] = llm_plan["deep_backend_url"]
+    config["quick_backend_url"] = llm_plan["quick_backend_url"]
+    config["deep_think_llm"] = llm_plan["deep_model"]
+    config["quick_think_llm"] = llm_plan["quick_model"]
 
     print(f"[TradingAgents] Running full analysis for {ticker} on {trade_date}", file=sys.stderr)
     print(f"[TradingAgents] Analysts: {selected_analysts}", file=sys.stderr)
-    print(f"[TradingAgents] LLM: {config['llm_provider']} / quick={config['quick_think_llm']} / deep={config['deep_think_llm']}", file=sys.stderr)
+    print(
+        f"[TradingAgents] LLM routing: deep={config['deep_think_provider']}:{config['deep_think_llm']} "
+        f"/ quick={config['quick_think_provider']}:{config['quick_think_llm']}",
+        file=sys.stderr,
+    )
     print(f"[TradingAgents] This may take 2-5 minutes...", file=sys.stderr)
 
     try:

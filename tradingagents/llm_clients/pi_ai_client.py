@@ -6,9 +6,9 @@ API-key support.  This client talks to it via plain HTTP so TradingAgents
 doesn't need provider-specific SDKs (except for DeepSeek, which pi-ai
 doesn't support and is kept on the direct OpenAI-compat path).
 
-Start the server before using this client:
-    node ~/code/pi-mono/packages/ai-server/dist/server.js
-    # → listening on http://127.0.0.1:3456
+For local development, TradingAgents can auto-start pi-ai-server when
+PI_AI_SERVER_CMD (or default pi-mono paths) is configured. You can also
+start it manually and point PI_AI_SERVER_URL to the running instance.
 
 For OAuth providers (google-gemini-cli, openai-codex) the client fetches a
 fresh token from /auth/token on every call; pi-ai-server handles refresh.
@@ -36,8 +36,14 @@ from langchain_core.messages import (
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.tools import BaseTool
 
+from .pi_ai_server_manager import (
+    DEFAULT_PI_AI_SERVER_URL,
+    ensure_pi_ai_server_ready,
+    get_oauth_token_or_raise,
+)
+
 # ── Default server URL (override with PI_AI_SERVER_URL env var) ───────────────
-_DEFAULT_SERVER_URL = "http://127.0.0.1:3456"
+_DEFAULT_SERVER_URL = DEFAULT_PI_AI_SERVER_URL
 
 # ── OAuth providers whose token must be fetched from /auth/token ──────────────
 _OAUTH_PROVIDERS = {"google-gemini-cli", "openai-codex"}
@@ -141,15 +147,7 @@ def _http_post(url: str, payload: dict) -> dict:
 
 def _get_oauth_token(provider_id: str, server_url: str) -> str:
     """Fetch a valid OAuth token from pi-ai-server /auth/token."""
-    result = _http_post(f"{server_url}/auth/token", {"providerId": provider_id})
-    token = result.get("apiKey")
-    if not token:
-        raise RuntimeError(
-            f"No token returned for provider '{provider_id}'. "
-            f"Run: node ~/code/pi-mono/packages/ai-server/dist/server.js then "
-            f"node ~/code/pi-mono/packages/ai/dist/cli.js login {provider_id}"
-        )
-    return token
+    return get_oauth_token_or_raise(provider_id, server_url)
 
 
 def _convert_tool_to_pi_ai(tool: BaseTool) -> dict:
@@ -314,6 +312,13 @@ class PiAiClient(BaseChatModel):
         run_manager: Optional[CallbackManagerForLLMRun] = None,
         **kwargs: Any,
     ) -> ChatResult:
+        if not ensure_pi_ai_server_ready(self.server_url):
+            raise RuntimeError(
+                f"pi-ai-server is unreachable at '{self.server_url}'. "
+                "Set PI_AI_SERVER_CMD/PI_AI_SERVER_CWD for auto-start, or set "
+                "PI_AI_SERVER_URL to a running server."
+            )
+
         system_prompt, pi_messages = _langchain_messages_to_pi_ai(messages)
 
         context: Dict[str, Any] = {"messages": pi_messages}

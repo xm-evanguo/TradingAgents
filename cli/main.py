@@ -25,6 +25,7 @@ from rich.rule import Rule
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.llm_clients.model_router import resolve_llm_plan
 from cli.models import AnalystType
 from cli.utils import *
 from cli.announcements import fetch_announcements, display_announcements
@@ -536,54 +537,40 @@ def get_user_selections():
     )
     selected_research_depth = select_research_depth()
 
-    # Step 5: OpenAI backend
+    # Step 5: Auto model routing
     console.print(
         create_question_box(
-            "Step 5: OpenAI backend", "Select which service to talk to"
+            "Step 5: Model Routing", "Auto-selecting LLM providers/models based on auth and API keys"
         )
     )
-    selected_llm_provider, backend_url = select_llm_provider()
-    
-    # Step 6: Thinking agents
-    console.print(
-        create_question_box(
-            "Step 6: Thinking Agents", "Select your thinking agents for analysis"
-        )
-    )
-    selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
-    selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
+    llm_plan = resolve_llm_plan()
 
-    # Step 7: Provider-specific thinking configuration
+    # Provider-specific thinking configuration
     thinking_level = None
     reasoning_effort = None
 
-    provider_lower = selected_llm_provider.lower()
-    if provider_lower == "google":
-        console.print(
-            create_question_box(
-                "Step 7: Thinking Mode",
-                "Configure Gemini thinking mode"
-            )
-        )
-        thinking_level = ask_gemini_thinking_config()
-    elif provider_lower == "openai":
-        console.print(
-            create_question_box(
-                "Step 7: Reasoning Effort",
-                "Configure OpenAI reasoning effort level"
-            )
-        )
-        reasoning_effort = ask_openai_reasoning_effort()
+    if llm_plan["deep_provider"] == "google":
+        thinking_level = "high"
+    if llm_plan["quick_provider"] == "google":
+        thinking_level = "high"
+    if llm_plan["deep_provider"] == "openai":
+        reasoning_effort = "medium"
+    if llm_plan["quick_provider"] == "openai":
+        reasoning_effort = "medium"
 
     return {
         "ticker": selected_ticker,
         "analysis_date": analysis_date,
         "analysts": selected_analysts,
         "research_depth": selected_research_depth,
-        "llm_provider": selected_llm_provider.lower(),
-        "backend_url": backend_url,
-        "shallow_thinker": selected_shallow_thinker,
-        "deep_thinker": selected_deep_thinker,
+        "llm_provider": llm_plan["deep_provider"],
+        "backend_url": llm_plan["deep_backend_url"],
+        "deep_provider": llm_plan["deep_provider"],
+        "quick_provider": llm_plan["quick_provider"],
+        "deep_backend_url": llm_plan["deep_backend_url"],
+        "quick_backend_url": llm_plan["quick_backend_url"],
+        "shallow_thinker": llm_plan["quick_model"],
+        "deep_thinker": llm_plan["deep_model"],
         "google_thinking_level": thinking_level,
         "openai_reasoning_effort": reasoning_effort,
     }
@@ -906,8 +893,12 @@ def run_analysis():
     config["max_risk_discuss_rounds"] = selections["research_depth"]
     config["quick_think_llm"] = selections["shallow_thinker"]
     config["deep_think_llm"] = selections["deep_thinker"]
-    config["backend_url"] = selections["backend_url"]
+    config["backend_url"] = selections.get("backend_url")
     config["llm_provider"] = selections["llm_provider"].lower()
+    config["deep_think_provider"] = selections.get("deep_provider")
+    config["quick_think_provider"] = selections.get("quick_provider")
+    config["deep_backend_url"] = selections.get("deep_backend_url")
+    config["quick_backend_url"] = selections.get("quick_backend_url")
     # Provider-specific thinking configuration
     config["google_thinking_level"] = selections.get("google_thinking_level")
     config["openai_reasoning_effort"] = selections.get("openai_reasoning_effort")

@@ -9,11 +9,16 @@ DEFAULT_CONFIG = {
     ),
     # LLM settings
     # Providers: google-gemini-cli (OAuth via pi-ai-server), codex (OAuth via pi-ai-server),
-    #            openai, google, xai, kimi (API key via pi-ai-server), deepseek (direct API)
+    #            openai, google, xai, kimi (API key via pi-ai-server),
+    #            deepseek, minimax (direct API)
     "llm_provider": "google-gemini-cli",
     "deep_think_llm": "gemini-2.5-pro",
     "quick_think_llm": "gemini-2.5-flash",
+    "deep_think_provider": None,
+    "quick_think_provider": None,
     "backend_url": None,
+    "deep_backend_url": None,
+    "quick_backend_url": None,
     # Provider-specific thinking configuration
     "google_thinking_level": "high",      # "high", "minimal", etc.
     "openai_reasoning_effort": None,    # "medium", "high", "low"
