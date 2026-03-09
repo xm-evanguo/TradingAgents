@@ -198,10 +198,10 @@ Routing priority:
    - then `google-gemini-cli:gemini-3.1-pro-preview`
    - then API-key providers by priority `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
 2. Quick routing prefers:
-   - `google-gemini-cli:gemini-3.1-flash-preview`
+   - `google-gemini-cli:gemini-3-flash-preview`
    - then API-key providers by priority `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
 3. Example combined behavior:
-   - If Codex OAuth and Gemini CLI OAuth are both available, deep uses `codex:gpt-5.4` while quick uses `google-gemini-cli:gemini-3.1-flash-preview`
+   - If Codex OAuth and Gemini CLI OAuth are both available, deep uses `codex:gpt-5.4` while quick uses `google-gemini-cli:gemini-3-flash-preview`
 
 ### CLI Usage
 

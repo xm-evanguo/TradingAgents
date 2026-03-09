@@ -14,7 +14,7 @@ _API_KEY_PROVIDER_PRIORITY = (
 
 DEFAULT_CODEX_MODEL = "gpt-5.4"
 GEMINI_DEEP_MODEL = "gemini-3.1-pro-preview"
-GEMINI_QUICK_MODEL = "gemini-3.1-flash-preview"
+GEMINI_QUICK_MODEL = "gemini-3-flash-preview"
 
 
 def _has_pi_ai_oauth(provider_id: str, server_url: str) -> bool:
