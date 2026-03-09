@@ -168,7 +168,7 @@ export PI_AI_SERVER_URL="http://127.0.0.1:3456"
 ```
 
 If you want to use OAuth providers (Gemini CLI or OpenAI Codex), keep pi-ai-server reachable.
-If you only use direct API-key providers (MiniMax/DeepSeek) and do not rely on OAuth routes,
+If you only use direct API-key providers (MiniMax/Kimi/DeepSeek) and do not rely on OAuth routes,
 pi-ai-server is optional.
 
 #### 4. Set API keys (API-key providers only)
@@ -179,13 +179,13 @@ For providers that require API keys, set the relevant environment variable:
 export OPENAI_API_KEY=...          # OpenAI (GPT)
 export GOOGLE_API_KEY=...          # Google (Gemini API)
 export XAI_API_KEY=...             # xAI (Grok)
-export MOONSHOT_API_KEY=...        # Kimi
+export MOONSHOT_API_KEY=...        # Kimi (direct API)
 export DEEPSEEK_API_KEY=...        # DeepSeek (direct API, no pi-ai-server needed)
 export MINIMAX_API_KEY=...         # MiniMax (direct API, no pi-ai-server needed)
 export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage (market data)
 ```
 
-> **Note:** DeepSeek and MiniMax call APIs directly (pi-ai-server does not support them). Other providers are routed through pi-ai-server.
+> **Note:** Kimi, DeepSeek, and MiniMax call APIs directly. OAuth providers and pi-ai-backed API-key providers are routed through pi-ai-server.
 
 ### Automatic LLM Routing
 
@@ -194,8 +194,8 @@ TradingAgents now auto-selects provider/model routes. The CLI no longer asks you
 Routing priority:
 
 1. If OpenAI Codex OAuth is available, use:
-   - Deep: `codex:gpt-5.2`
-   - Quick: `codex:gpt-5.2`
+   - Deep: `codex:gpt-5.4`
+   - Quick: `codex:gpt-5.4`
 2. Else if Gemini CLI OAuth is available, use:
    - Deep: `google-gemini-cli:gemini-3.1-pro-preview`
    - Quick: `google-gemini-cli:gemini-3.1-flash-preview`
@@ -210,6 +210,7 @@ You can also try out the CLI directly by running:
 python -m cli.main
 ```
 You will see a screen where you can select tickers, date, analyst team, and research depth.
+Research depth maps to debate/discussion rounds: `Deep = 3`, `Shallow = 1`.
 LLM provider/model routing is resolved automatically from available auth/API keys.
 
 <p align="center">
@@ -230,7 +231,7 @@ An interface will appear showing results as they load, letting you track the age
 
 ### Implementation Details
 
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, xAI, and Kimi. DeepSeek and MiniMax connect directly.
+We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, and xAI. Kimi, DeepSeek, and MiniMax connect directly.
 
 ### Python Usage
 

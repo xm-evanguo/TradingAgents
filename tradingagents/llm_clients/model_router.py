@@ -8,9 +8,11 @@ from .pi_ai_server_manager import (
 
 _API_KEY_PROVIDER_PRIORITY = (
     ("minimax", "MINIMAX_API_KEY", "https://api.minimax.io/anthropic"),
-    ("kimi", "MOONSHOT_API_KEY", ""),
+    ("kimi", "MOONSHOT_API_KEY", "https://api.moonshot.ai/v1"),
     ("deepseek", "DEEPSEEK_API_KEY", "https://api.deepseek.com/v1"),
 )
+
+DEFAULT_CODEX_MODEL = "gpt-5.4"
 
 
 def _has_pi_ai_oauth(provider_id: str, server_url: str) -> bool:
@@ -48,10 +50,10 @@ def resolve_llm_plan() -> Dict[str, Optional[str]]:
     if has_codex_auth:
         return {
             "deep_provider": "codex",
-            "deep_model": "gpt-5.2",
+            "deep_model": DEFAULT_CODEX_MODEL,
             "deep_backend_url": "",
             "quick_provider": "codex",
-            "quick_model": "gpt-5.2",
+            "quick_model": DEFAULT_CODEX_MODEL,
             "quick_backend_url": "",
         }
 

@@ -13,7 +13,6 @@ _PI_AI_PROVIDERS = {
     "openai",
     "google",
     "xai",
-    "kimi",           # maps to kimi-coding in pi-ai
 }
 
 # Map our provider names → pi-ai provider IDs
@@ -23,13 +22,12 @@ _PROVIDER_TO_PI_AI: dict[str, str] = {
     "openai": "openai",
     "google": "google",
     "xai": "xai",
-    "kimi": "kimi-coding",
 }
 
 # Map our provider names → default model ID (when none supplied)
 _DEFAULT_MODELS: dict[str, str] = {
     "google-gemini-cli": "gemini-2.5-flash",
-    "codex": "gpt-5.2",
+    "codex": "gpt-5.4",
 }
 
 
@@ -72,7 +70,7 @@ def create_llm_client(
         )
 
     # ── Direct API providers ─────────────────────────────────────────────────
-    if provider_lower in ("deepseek", "ollama", "openrouter"):
+    if provider_lower in ("kimi", "deepseek", "ollama", "openrouter"):
         return OpenAIClient(model, base_url, provider=provider_lower, **kwargs)
 
     if provider_lower == "minimax":

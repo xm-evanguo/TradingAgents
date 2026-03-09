@@ -73,7 +73,7 @@ _MODEL_SPECS: Dict[str, Dict[str, Any]] = {
     "openai-codex": {
         "api": "openai-codex-responses",
         "provider": "openai-codex",
-        "baseUrl": "https://api.openai.com/v1",
+        "baseUrl": "https://chatgpt.com/backend-api",
         "reasoning": False,
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
@@ -324,6 +324,9 @@ class PiAiClient(BaseChatModel):
         context: Dict[str, Any] = {"messages": pi_messages}
         if system_prompt:
             context["systemPrompt"] = system_prompt
+        elif self.provider_id == "openai-codex":
+            # ChatGPT-backed Codex requires instructions on every request.
+            context["systemPrompt"] = "You are a helpful assistant."
         if self._bound_tools:
             context["tools"] = self._bound_tools
 

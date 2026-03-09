@@ -63,6 +63,16 @@ class TradingAgentsGraph:
         self.config = config or DEFAULT_CONFIG
         self.callbacks = callbacks or []
 
+        max_debate_rounds = self._normalize_round_count(
+            self.config.get("max_debate_rounds"), default=1
+        )
+        max_risk_discuss_rounds = self._normalize_round_count(
+            self.config.get("max_risk_discuss_rounds"), default=1
+        )
+        # Keep normalized values in config so downstream code sees effective limits.
+        self.config["max_debate_rounds"] = max_debate_rounds
+        self.config["max_risk_discuss_rounds"] = max_risk_discuss_rounds
+
         # Update the interface's config
         set_config(self.config)
 
@@ -112,7 +122,10 @@ class TradingAgentsGraph:
         self.tool_nodes = self._create_tool_nodes()
 
         # Initialize components
-        self.conditional_logic = ConditionalLogic()
+        self.conditional_logic = ConditionalLogic(
+            max_debate_rounds=max_debate_rounds,
+            max_risk_discuss_rounds=max_risk_discuss_rounds,
+        )
         self.graph_setup = GraphSetup(
             self.quick_thinking_llm,
             self.deep_thinking_llm,
@@ -136,6 +149,15 @@ class TradingAgentsGraph:
 
         # Set up the graph
         self.graph = self.graph_setup.setup_graph(selected_analysts)
+
+    @staticmethod
+    def _normalize_round_count(value: Any, default: int = 1) -> int:
+        """Normalize round counts to the supported range [1, 5]."""
+        try:
+            rounds = int(value)
+        except (TypeError, ValueError):
+            rounds = default
+        return max(1, min(rounds, 5))
 
     def _get_provider_kwargs(self, provider: str) -> Dict[str, Any]:
         """Get provider-specific kwargs for LLM client creation."""

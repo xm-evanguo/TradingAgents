@@ -54,6 +54,10 @@ def _default_start_spec() -> Optional[Tuple[Sequence[str], Optional[str]]]:
     if src_server.exists():
         return ["npx", "tsx", "packages/ai-server/src/server.ts"], str(pi_mono_root)
 
+    compat_server = Path(__file__).resolve().parents[2] / "scripts/pi_ai_server_compat.mjs"
+    if compat_server.exists():
+        return ["node", str(compat_server)], str(compat_server.parent.parent)
+
     return None
 
 

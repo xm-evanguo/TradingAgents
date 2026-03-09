@@ -54,7 +54,12 @@ python test.py
 ## LLM Routing Rules
 - Model/provider selection is automatic by default. Do not add new prompts that ask users to manually pick deep/quick models in CLI workflows.
 - Routing order:
-  - If Codex OAuth is available: deep=`gpt-5.2`, quick=`gpt-5.2` (provider `codex`)
+  - If Codex OAuth is available: deep=`gpt-5.4`, quick=`gpt-5.4` (provider `codex`)
   - Else if Gemini CLI OAuth is available: deep=`gemini-3.1-pro-preview`, quick=`gemini-3.1-flash-preview` (provider `google-gemini-cli`)
   - Else API-key fallback priority: `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner` for deep, `deepseek-chat` for quick)
 - Keep these rules consistent across `cli/main.py`, `tradingagents/llm_clients/model_router.py`, `README.md`, and skill docs when making changes.
+
+## Research Depth Rules
+- Keep CLI research depth aligned with defaults unless there is a deliberate reason not to.
+- Current mapping: `Deep = 3` rounds, `Shallow = 1` round.
+- `cli/main.py` applies the selected value to both `max_debate_rounds` and `max_risk_discuss_rounds`.

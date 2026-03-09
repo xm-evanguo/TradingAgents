@@ -10,6 +10,22 @@ ANALYST_ORDER = [
     ("Fundamentals Analyst", AnalystType.FUNDAMENTALS),
 ]
 
+RESEARCH_DEPTH_OPTIONS = [
+    ("Deep - Comprehensive research, in depth debate and strategy discussion", 3),
+    ("Shallow - Quick research, few debate and strategy discussion rounds", 1),
+]
+
+LLM_PROVIDER_OPTIONS = [
+    ("Google Gemini CLI  (OAuth, Free - via pi-ai-server)", "google-gemini-cli", ""),
+    ("OpenAI Codex       (OAuth, Subscription - via pi-ai-server)", "codex", ""),
+    ("OpenAI             (API Key - via pi-ai-server)", "openai", ""),
+    ("Google Gemini      (API Key - via pi-ai-server)", "google", ""),
+    ("xAI Grok           (API Key - via pi-ai-server)", "xai", ""),
+    ("Kimi               (API Key - direct API)", "kimi", "https://api.moonshot.ai/v1"),
+    ("DeepSeek           (API Key - direct API)", "deepseek", "https://api.deepseek.com/v1"),
+    ("MiniMax            (API Key - Anthropic compatible API)", "minimax", "https://api.minimax.io/anthropic"),
+]
+
 
 def get_ticker() -> str:
     """Prompt the user to enter a ticker symbol."""
@@ -93,16 +109,11 @@ def select_analysts() -> List[AnalystType]:
 def select_research_depth() -> int:
     """Select research depth using an interactive selection."""
 
-    # Define research depth options with their corresponding values
-    DEPTH_OPTIONS = [
-        ("Deep - Comprehensive research, in depth debate and strategy discussion", 5),
-        ("Shallow - Quick research, few debate and strategy discussion rounds", 1),
-    ]
-
     choice = questionary.select(
         "Select Your [Research Depth]:",
         choices=[
-            questionary.Choice(display, value=value) for display, value in DEPTH_OPTIONS
+            questionary.Choice(display, value=value)
+            for display, value in RESEARCH_DEPTH_OPTIONS
         ],
         instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(
@@ -130,8 +141,8 @@ def select_shallow_thinking_agent(provider) -> str:
             ("Gemini 2.0 Flash (Cloud Code Assist, free OAuth)", "gemini-2.0-flash"),
         ],
         "codex": [
-            ("GPT-5.1 Codex Mini (Subscription OAuth)", "gpt-5.1-codex-mini"),
-            ("GPT-5.1 (Subscription OAuth)", "gpt-5.1"),
+            ("GPT-5.4 (Subscription OAuth)", "gpt-5.4"),
+            ("GPT-5.4 Snapshot 2026-03-05 (Subscription OAuth)", "gpt-5.4-2026-03-05"),
         ],
         "openai": [
             ("GPT-5 Mini - Cost-optimized reasoning", "gpt-5-mini"),
@@ -200,12 +211,12 @@ def select_deep_thinking_agent(provider) -> str:
             ("Gemini 2.5 Flash (Cloud Code Assist, free OAuth)", "gemini-2.5-flash"),
         ],
         "codex": [
-            ("GPT-5.2 Codex (Subscription OAuth)", "gpt-5.2-codex"),
-            ("GPT-5.2 (Subscription OAuth)", "gpt-5.2"),
-            ("GPT-5.3 Codex (Subscription OAuth)", "gpt-5.3-codex"),
+            ("GPT-5.4 - Latest flagship (Subscription OAuth)", "gpt-5.4"),
+            ("GPT-5.4 Snapshot 2026-03-05 (Subscription OAuth)", "gpt-5.4-2026-03-05"),
+            ("GPT-5.4 Pro (Subscription OAuth)", "gpt-5.4-pro"),
         ],
         "openai": [
-            ("GPT-5.2 - Latest flagship", "gpt-5.2"),
+            ("GPT-5.4 - Latest flagship", "gpt-5.4"),
             ("GPT-5 Mini - Cost-optimized reasoning", "gpt-5-mini"),
             ("GPT-4.1 - Frontier", "gpt-4.1"),
         ],
@@ -262,28 +273,19 @@ def select_deep_thinking_agent(provider) -> str:
 
     return choice
 
+
 def select_llm_provider() -> tuple[str, str]:
     """Select the LLM provider using interactive selection.
 
-    Returns (provider_key, backend_url).  All providers except DeepSeek and MiniMax are
+    Returns (provider_key, backend_url).  All providers except Kimi, DeepSeek, and MiniMax are
     backed by the pi-ai-server; the backend_url is informational only.
     """
-    PROVIDER_OPTIONS = [
-        ("Google Gemini CLI  (OAuth, Free - via pi-ai-server)", "google-gemini-cli", ""),
-        ("OpenAI Codex       (OAuth, Subscription - via pi-ai-server)", "codex", ""),
-        ("OpenAI             (API Key - via pi-ai-server)", "openai", ""),
-        ("Google Gemini      (API Key - via pi-ai-server)", "google", ""),
-        ("xAI Grok           (API Key - via pi-ai-server)", "xai", ""),
-        ("Kimi               (API Key - via pi-ai-server)", "kimi", ""),
-        ("DeepSeek           (API Key - direct API)", "deepseek", "https://api.deepseek.com/v1"),
-        ("MiniMax            (API Key - Anthropic compatible API)", "minimax", "https://api.minimax.io/anthropic"),
-    ]
 
     choice = questionary.select(
         "Select your LLM Provider:",
         choices=[
             questionary.Choice(display, value=(provider_key, url))
-            for display, provider_key, url in PROVIDER_OPTIONS
+            for display, provider_key, url in LLM_PROVIDER_OPTIONS
         ],
         instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
         style=questionary.Style(

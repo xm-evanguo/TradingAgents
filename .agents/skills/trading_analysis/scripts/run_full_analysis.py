@@ -10,7 +10,7 @@ Usage:
 Options:
     --analysts   Comma-separated list of analysts to run (default: market,news,fundamentals)
                  Choices: market, news, fundamentals, social
-    --rounds     Max debate rounds (default: 1 for speed)
+    --rounds     Max debate rounds, 1-5 (default: 1 for speed)
 
 Examples:
     python run_full_analysis.py NVDA 2026-02-25
@@ -34,6 +34,16 @@ from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.llm_clients.model_router import resolve_llm_plan
 
 
+def _rounds_type(value: str) -> int:
+    try:
+        rounds = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("rounds must be an integer") from exc
+    if rounds < 1 or rounds > 5:
+        raise argparse.ArgumentTypeError("rounds must be between 1 and 5")
+    return rounds
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run full TradingAgents pipeline with LLM analysis")
     parser.add_argument("ticker", help="Stock ticker symbol (e.g., NVDA)")
@@ -43,7 +53,12 @@ def main():
         default="market,news,fundamentals",
         help="Comma-separated list of analysts to run (default: market,news,fundamentals)"
     )
-    parser.add_argument("--rounds", type=int, default=1, help="Max debate/risk discussion rounds (default: 1)")
+    parser.add_argument(
+        "--rounds",
+        type=_rounds_type,
+        default=1,
+        help="Max debate/risk discussion rounds (1-5, default: 1)",
+    )
 
     args = parser.parse_args()
 

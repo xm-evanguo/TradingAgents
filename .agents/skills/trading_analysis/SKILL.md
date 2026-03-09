@@ -87,7 +87,7 @@ uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICK
 - **Debate rounds**: Supported via `--rounds <N>` (applies to both investment debate and risk discussion; default is `1`)
 - **LLM routing**: Model/provider routing is automatic. Do not manually choose model names in this workflow.
 - **Routing priority**:
-  - If Codex OAuth is available: deep=`gpt-5.2`, quick=`gpt-5.2`
+  - If Codex OAuth is available: deep=`gpt-5.4`, quick=`gpt-5.4`
   - Else if Gemini CLI OAuth is available: deep=`gemini-3.1-pro-preview`, quick=`gemini-3.1-flash-preview`
   - Else API-key fallback: `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner` deep, `deepseek-chat` quick)
 
