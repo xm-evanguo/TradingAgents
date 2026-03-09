@@ -212,6 +212,7 @@ python -m cli.main
 You will see a screen where you can select tickers, date, analyst team, and research depth.
 Research depth maps to debate/discussion rounds: `Deep = 3`, `Shallow = 1`.
 LLM provider/model routing is resolved automatically from available auth/API keys.
+Manual analyst scripts and graph-driven workflows now share the same default analysis windows: market data/indicators use the prior `60` days ending on `trade_date`, company/global news use the prior `7` days, fundamentals use `trade_date` as the snapshot date, and social analysis uses `trade_date` with recent-news context over the prior `7` days.
 
 <p align="center">
   <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">

@@ -1,8 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
-from tradingagents.agents.utils.agent_utils import get_news, get_global_news
-from tradingagents.dataflows.config import get_config
+from tradingagents.agents.utils.agent_utils import (
+    get_global_news,
+    get_insider_transactions,
+    get_news,
+)
+from tradingagents.analysis_context import get_default_analysis_context
 from tradingagents.prompts import get_agent_prompt
 
 
@@ -10,13 +12,19 @@ def create_news_analyst(llm):
     def news_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
+        analysis_context = get_default_analysis_context(current_date)
 
         tools = [
             get_news,
             get_global_news,
+            get_insider_transactions,
         ]
 
-        system_message = get_agent_prompt('news_analyst', ticker)
+        system_message = get_agent_prompt(
+            "news_analyst",
+            ticker,
+            **analysis_context,
+        )
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -29,7 +37,8 @@ def create_news_analyst(llm):
                     " If you or any other assistant has the FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** or deliverable,"
                     " prefix your response with FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** so the team knows to stop."
                     " You have access to the following tools: {tool_names}.\n{system_message}"
-                    "For your reference, the current date is {current_date}. We are looking at the company {ticker}",
+                    " For your reference, the current date is {current_date}. We are looking at the company {ticker}."
+                    " Use the default analysis windows already provided. Do not ask for missing date ranges when those defaults are sufficient.",
                 ),
                 MessagesPlaceholder(variable_name="messages"),
             ]

@@ -11,7 +11,7 @@ Usage:
 
 import sys
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -22,6 +22,7 @@ load_dotenv(project_root / ".env")
 from tradingagents.dataflows.config import set_config
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.dataflows.interface import route_to_vendor
+from tradingagents.analysis_context import get_default_analysis_context
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
     trade_date = sys.argv[2]
 
     try:
-        dt = datetime.strptime(trade_date, "%Y-%m-%d")
+        datetime.strptime(trade_date, "%Y-%m-%d")
     except ValueError:
         print(json.dumps({"status": "error", "message": f"Invalid date format: '{trade_date}'. Use YYYY-MM-DD."}))
         sys.exit(1)
@@ -45,7 +46,8 @@ def main():
     config["data_vendors"] = {"news_data": "yfinance"}
     set_config(config)
 
-    start_date = (dt - timedelta(days=7)).strftime("%Y-%m-%d")
+    analysis_context = get_default_analysis_context(trade_date)
+    start_date = analysis_context["news_start_date"]
 
     result = {
         "ticker": ticker,
@@ -56,14 +58,24 @@ def main():
 
     # Company-specific news
     try:
-        news = route_to_vendor("get_news", ticker, start_date, trade_date)
+        news = route_to_vendor(
+            "get_news",
+            ticker,
+            start_date,
+            analysis_context["news_end_date"],
+        )
         result["data"]["company_news"] = news
     except Exception as e:
         result["data"]["company_news"] = f"Error: {e}"
 
     # Global macro news
     try:
-        global_news = route_to_vendor("get_global_news", trade_date, look_back_days=7, limit=10)
+        global_news = route_to_vendor(
+            "get_global_news",
+            trade_date,
+            look_back_days=analysis_context["news_look_back_days"],
+            limit=analysis_context["global_news_limit"],
+        )
         result["data"]["global_news"] = global_news
     except Exception as e:
         result["data"]["global_news"] = f"Error: {e}"

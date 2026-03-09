@@ -11,8 +11,7 @@ Usage:
 
 import sys
 import json
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -24,6 +23,7 @@ load_dotenv(project_root / ".env")
 from tradingagents.dataflows.config import set_config
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.dataflows.interface import route_to_vendor
+from tradingagents.analysis_context import get_default_analysis_context
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
 
     # Validate date format
     try:
-        dt = datetime.strptime(trade_date, "%Y-%m-%d")
+        datetime.strptime(trade_date, "%Y-%m-%d")
     except ValueError:
         print(json.dumps({"status": "error", "message": f"Invalid date format: '{trade_date}'. Use YYYY-MM-DD."}))
         sys.exit(1)
@@ -52,9 +52,9 @@ def main():
     }
     set_config(config)
 
-    # Date ranges
-    start_date = (dt - timedelta(days=60)).strftime("%Y-%m-%d")
-    end_date = trade_date
+    analysis_context = get_default_analysis_context(trade_date)
+    start_date = analysis_context["market_start_date"]
+    end_date = analysis_context["market_end_date"]
 
     result = {
         "ticker": ticker,
@@ -76,7 +76,13 @@ def main():
 
     for indicator in indicators:
         try:
-            ind_data = route_to_vendor("get_indicators", ticker, indicator, trade_date, look_back_days=60)
+            ind_data = route_to_vendor(
+                "get_indicators",
+                ticker,
+                indicator,
+                trade_date,
+                look_back_days=analysis_context["market_look_back_days"],
+            )
             result["data"]["technical_indicators"][indicator] = ind_data
         except Exception as e:
             result["data"]["technical_indicators"][indicator] = f"Error: {e}"

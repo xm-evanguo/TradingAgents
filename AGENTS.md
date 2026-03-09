@@ -63,3 +63,8 @@ python test.py
 - Keep CLI research depth aligned with defaults unless there is a deliberate reason not to.
 - Current mapping: `Deep = 3` rounds, `Shallow = 1` round.
 - `cli/main.py` applies the selected value to both `max_debate_rounds` and `max_risk_discuss_rounds`.
+
+## Analysis Window Defaults
+- Keep manual analyst scripts and graph-driven workflows aligned on default analysis windows.
+- Current defaults: market data and indicators use the prior `60` days ending on `trade_date`; company/global news use the prior `7` days ending on `trade_date`; fundamentals use `trade_date` as the snapshot date; social sentiment uses `trade_date` with recent-news context from the prior `7` days.
+- Do not rely on the LLM to infer or ask for these defaults when the workflow already knows `trade_date`; pass the defaults explicitly in prompts/state.

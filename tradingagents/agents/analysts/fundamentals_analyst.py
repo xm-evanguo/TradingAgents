@@ -1,8 +1,11 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
-from tradingagents.agents.utils.agent_utils import get_fundamentals, get_balance_sheet, get_cashflow, get_income_statement, get_insider_transactions
-from tradingagents.dataflows.config import get_config
+from tradingagents.agents.utils.agent_utils import (
+    get_balance_sheet,
+    get_cashflow,
+    get_fundamentals,
+    get_income_statement,
+)
+from tradingagents.analysis_context import get_default_analysis_context
 from tradingagents.prompts import get_agent_prompt
 
 
@@ -10,7 +13,7 @@ def create_fundamentals_analyst(llm):
     def fundamentals_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
-        company_name = state["company_of_interest"]
+        analysis_context = get_default_analysis_context(current_date)
 
         tools = [
             get_fundamentals,
@@ -19,7 +22,11 @@ def create_fundamentals_analyst(llm):
             get_income_statement,
         ]
 
-        system_message = get_agent_prompt('fundamentals_analyst', ticker)
+        system_message = get_agent_prompt(
+            "fundamentals_analyst",
+            ticker,
+            **analysis_context,
+        )
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -32,7 +39,8 @@ def create_fundamentals_analyst(llm):
                     " If you or any other assistant has the FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** or deliverable,"
                     " prefix your response with FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** so the team knows to stop."
                     " You have access to the following tools: {tool_names}.\n{system_message}"
-                    "For your reference, the current date is {current_date}. The company we want to look at is {ticker}",
+                    " For your reference, the current date is {current_date}. The company we want to look at is {ticker}."
+                    " Use the default analysis date already provided. Do not ask for missing date ranges when those defaults are sufficient.",
                 ),
                 MessagesPlaceholder(variable_name="messages"),
             ]

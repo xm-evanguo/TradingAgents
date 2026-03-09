@@ -1,8 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-import time
-import json
 from tradingagents.agents.utils.agent_utils import get_news, get_social_media_sentiment
-from tradingagents.dataflows.config import get_config
+from tradingagents.analysis_context import get_default_analysis_context
 from tradingagents.prompts import get_agent_prompt
 
 
@@ -10,14 +8,18 @@ def create_social_media_analyst(llm):
     def social_media_analyst_node(state):
         current_date = state["trade_date"]
         ticker = state["company_of_interest"]
-        company_name = state["company_of_interest"]
+        analysis_context = get_default_analysis_context(current_date)
 
         tools = [
             get_news,
             get_social_media_sentiment,
         ]
 
-        system_message = get_agent_prompt('social_media_analyst', ticker)
+        system_message = get_agent_prompt(
+            "social_media_analyst",
+            ticker,
+            **analysis_context,
+        )
 
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -30,7 +32,8 @@ def create_social_media_analyst(llm):
                     " If you or any other assistant has the FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** or deliverable,"
                     " prefix your response with FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** so the team knows to stop."
                     " You have access to the following tools: {tool_names}.\n{system_message}"
-                    "For your reference, the current date is {current_date}. The current company we want to analyze is {ticker}",
+                    " For your reference, the current date is {current_date}. The current company we want to analyze is {ticker}."
+                    " Use the default analysis windows already provided. Do not ask for missing date ranges when those defaults are sufficient.",
                 ),
                 MessagesPlaceholder(variable_name="messages"),
             ]
@@ -56,4 +59,3 @@ def create_social_media_analyst(llm):
         }
 
     return social_media_analyst_node
-
