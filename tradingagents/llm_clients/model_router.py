@@ -13,6 +13,8 @@ _API_KEY_PROVIDER_PRIORITY = (
 )
 
 DEFAULT_CODEX_MODEL = "gpt-5.4"
+GEMINI_DEEP_MODEL = "gemini-3.1-pro-preview"
+GEMINI_QUICK_MODEL = "gemini-3.1-flash-preview"
 
 
 def _has_pi_ai_oauth(provider_id: str, server_url: str) -> bool:
@@ -45,32 +47,33 @@ def resolve_llm_plan() -> Dict[str, Optional[str]]:
     server_url = os.getenv("PI_AI_SERVER_URL", DEFAULT_PI_AI_SERVER_URL)
     has_codex_auth = _has_pi_ai_oauth("openai-codex", server_url)
     has_gemini_cli_auth = _has_pi_ai_oauth("google-gemini-cli", server_url)
+    api_quick = _pick_api_key_provider("quick")
 
-    # Step 1: codex auth has highest priority.
+    # Deep routing priority: codex auth, then gemini-cli auth, then API-key models.
     if has_codex_auth:
-        return {
-            "deep_provider": "codex",
-            "deep_model": DEFAULT_CODEX_MODEL,
-            "deep_backend_url": "",
-            "quick_provider": "codex",
-            "quick_model": DEFAULT_CODEX_MODEL,
-            "quick_backend_url": "",
+        deep = {
+            "provider": "codex",
+            "model": DEFAULT_CODEX_MODEL,
+            "backend_url": "",
         }
+    elif has_gemini_cli_auth:
+        deep = {
+            "provider": "google-gemini-cli",
+            "model": GEMINI_DEEP_MODEL,
+            "backend_url": "",
+        }
+    else:
+        deep = _pick_api_key_provider("deep")
 
-    # Step 2: if no codex auth, use gemini-cli auth when available.
+    # Quick routing priority: gemini-cli auth first, otherwise API-key models.
     if has_gemini_cli_auth:
-        return {
-            "deep_provider": "google-gemini-cli",
-            "deep_model": "gemini-3.1-pro-preview",
-            "deep_backend_url": "",
-            "quick_provider": "google-gemini-cli",
-            "quick_model": "gemini-3.1-flash-preview",
-            "quick_backend_url": "",
+        quick = {
+            "provider": "google-gemini-cli",
+            "model": GEMINI_QUICK_MODEL,
+            "backend_url": "",
         }
-
-    # Step 3: If no OAuth auth, use API-key models by priority.
-    deep = _pick_api_key_provider("deep")
-    quick = _pick_api_key_provider("quick")
+    else:
+        quick = api_quick
 
     if deep and quick:
         return {
@@ -84,5 +87,6 @@ def resolve_llm_plan() -> Dict[str, Optional[str]]:
 
     raise RuntimeError(
         "No available LLM route. "
-        "Set credentials for codex/gemini-cli auth or API keys for minimax/kimi/deepseek."
+        "Deep requires codex/gemini-cli auth or API keys for minimax/kimi/deepseek. "
+        "Quick requires gemini-cli auth or API keys for minimax/kimi/deepseek."
     )

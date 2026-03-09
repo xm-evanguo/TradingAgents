@@ -105,9 +105,9 @@ uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICK
 - **LLM routing**: Model/provider routing is automatic. Do not manually choose model names in this workflow.
 - **Graph/manual consistency**: Full analysis injects the same default windows into graph state and analyst prompts so the model should not need to ask for date-range clarification
 - **Routing priority**:
-  - If Codex OAuth is available: deep=`gpt-5.4`, quick=`gpt-5.4`
-  - Else if Gemini CLI OAuth is available: deep=`gemini-3.1-pro-preview`, quick=`gemini-3.1-flash-preview`
-  - Else API-key fallback: `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner` deep, `deepseek-chat` quick)
+  - Deep prefers Codex OAuth (`gpt-5.4`), then Gemini CLI OAuth (`gemini-3.1-pro-preview`), then API-key fallback `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
+  - Quick prefers Gemini CLI OAuth (`gemini-3.1-flash-preview`), otherwise API-key fallback `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
+  - If both Codex OAuth and Gemini CLI OAuth are available, the expected split is deep=`gpt-5.4` and quick=`gemini-3.1-flash-preview`
 
 **Example with options:**
 ```bash

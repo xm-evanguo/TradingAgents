@@ -7,6 +7,7 @@ from langchain_core.messages import HumanMessage
 from tradingagents.llm_clients.factory import create_llm_client
 from tradingagents.llm_clients.model_router import (
     DEFAULT_CODEX_MODEL,
+    GEMINI_QUICK_MODEL,
     resolve_llm_plan,
 )
 from tradingagents.llm_clients.pi_ai_client import PiAiClient
@@ -14,17 +15,41 @@ from tradingagents.llm_clients import pi_ai_server_manager
 
 
 class ModelRoutingDefaultsTest(unittest.TestCase):
-    def test_codex_oauth_defaults_to_gpt_5_4(self) -> None:
+    def test_codex_deep_prefers_gemini_quick_when_gemini_auth_exists(self) -> None:
         with patch(
             "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
-            side_effect=[True, False],
+            side_effect=[True, True],
         ):
             plan = resolve_llm_plan()
 
         self.assertEqual(plan["deep_provider"], "codex")
-        self.assertEqual(plan["quick_provider"], "codex")
+        self.assertEqual(plan["quick_provider"], "google-gemini-cli")
         self.assertEqual(plan["deep_model"], DEFAULT_CODEX_MODEL)
-        self.assertEqual(plan["quick_model"], DEFAULT_CODEX_MODEL)
+        self.assertEqual(plan["quick_model"], GEMINI_QUICK_MODEL)
+
+    def test_codex_deep_falls_back_to_api_key_quick_without_gemini_auth(self) -> None:
+        with patch(
+            "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
+            side_effect=[True, False],
+        ), patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-key"}, clear=True):
+            plan = resolve_llm_plan()
+
+        self.assertEqual(plan["deep_provider"], "codex")
+        self.assertEqual(plan["deep_model"], DEFAULT_CODEX_MODEL)
+        self.assertEqual(plan["quick_provider"], "deepseek")
+        self.assertEqual(plan["quick_model"], "deepseek-chat")
+
+    def test_gemini_auth_handles_both_roles_when_codex_is_unavailable(self) -> None:
+        with patch(
+            "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
+            side_effect=[False, True],
+        ):
+            plan = resolve_llm_plan()
+
+        self.assertEqual(plan["deep_provider"], "google-gemini-cli")
+        self.assertEqual(plan["deep_model"], "gemini-3.1-pro-preview")
+        self.assertEqual(plan["quick_provider"], "google-gemini-cli")
+        self.assertEqual(plan["quick_model"], GEMINI_QUICK_MODEL)
 
     def test_codex_factory_default_model_matches_router_default(self) -> None:
         client = create_llm_client("codex", "")

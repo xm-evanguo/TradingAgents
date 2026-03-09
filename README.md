@@ -193,15 +193,15 @@ TradingAgents now auto-selects provider/model routes. The CLI no longer asks you
 
 Routing priority:
 
-1. If OpenAI Codex OAuth is available, use:
-   - Deep: `codex:gpt-5.4`
-   - Quick: `codex:gpt-5.4`
-2. Else if Gemini CLI OAuth is available, use:
-   - Deep: `google-gemini-cli:gemini-3.1-pro-preview`
-   - Quick: `google-gemini-cli:gemini-3.1-flash-preview`
-3. Else use API-key providers by priority:
-   - `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek
-   - DeepSeek maps to `deepseek-reasoner` (deep) and `deepseek-chat` (quick)
+1. Deep routing prefers:
+   - `codex:gpt-5.4`
+   - then `google-gemini-cli:gemini-3.1-pro-preview`
+   - then API-key providers by priority `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
+2. Quick routing prefers:
+   - `google-gemini-cli:gemini-3.1-flash-preview`
+   - then API-key providers by priority `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
+3. Example combined behavior:
+   - If Codex OAuth and Gemini CLI OAuth are both available, deep uses `codex:gpt-5.4` while quick uses `google-gemini-cli:gemini-3.1-flash-preview`
 
 ### CLI Usage
 
