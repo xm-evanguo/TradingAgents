@@ -23,7 +23,6 @@ LLM_PROVIDER_OPTIONS = [
     ("xAI Grok           (API Key - via pi-ai-server)", "xai", ""),
     ("Kimi               (API Key - direct API)", "kimi", "https://api.moonshot.ai/v1"),
     ("DeepSeek           (API Key - direct API)", "deepseek", "https://api.deepseek.com/v1"),
-    ("MiniMax            (API Key - Anthropic compatible API)", "minimax", "https://api.minimax.io/anthropic"),
 ]
 
 
@@ -163,11 +162,6 @@ def select_shallow_thinking_agent(provider) -> str:
         "deepseek": [
             ("DeepSeek V3 - Chat model", "deepseek-chat"),
         ],
-        "minimax": [
-            ("MiniMax M2.5 - Premium fast model", "MiniMax-M2.5"),
-            ("Kimi K2.5 - Fallback", "kimi-k2.5"),
-            ("DeepSeek V3 - Fallback", "deepseek-chat"),
-        ],
     }
 
     provider_key = provider.lower()
@@ -238,11 +232,6 @@ def select_deep_thinking_agent(provider) -> str:
             ("DeepSeek R1 - Reasoning-first", "deepseek-reasoner"),
             ("DeepSeek V3 - Chat model", "deepseek-chat"),
         ],
-        "minimax": [
-            ("MiniMax M2.5 - Premium reasoning model", "MiniMax-M2.5"),
-            ("Kimi K2.5 - Fallback", "kimi-k2.5"),
-            ("DeepSeek R1 - Fallback", "deepseek-reasoner"),
-        ],
     }
 
     provider_key = provider.lower()
@@ -277,7 +266,7 @@ def select_deep_thinking_agent(provider) -> str:
 def select_llm_provider() -> tuple[str, str]:
     """Select the LLM provider using interactive selection.
 
-    Returns (provider_key, backend_url).  All providers except Kimi, DeepSeek, and MiniMax are
+    Returns (provider_key, backend_url). All providers except Kimi and DeepSeek are
     backed by the pi-ai-server; the backend_url is informational only.
     """
 

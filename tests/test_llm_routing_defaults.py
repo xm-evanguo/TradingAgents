@@ -56,6 +56,26 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
 
         self.assertEqual(client.model, DEFAULT_CODEX_MODEL)
 
+    def test_api_key_priority_prefers_kimi_over_deepseek(self) -> None:
+        with patch(
+            "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
+            side_effect=[False, False],
+        ), patch.dict(
+            "os.environ",
+            {"MOONSHOT_API_KEY": "kimi-key", "DEEPSEEK_API_KEY": "deepseek-key"},
+            clear=True,
+        ):
+            plan = resolve_llm_plan()
+
+        self.assertEqual(plan["deep_provider"], "kimi")
+        self.assertEqual(plan["deep_model"], "kimi-k2.5")
+        self.assertEqual(plan["quick_provider"], "kimi")
+        self.assertEqual(plan["quick_model"], "kimi-k2.5")
+
+    def test_minimax_provider_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Unsupported LLM provider: minimax"):
+            create_llm_client("minimax", "MiniMax-M2.5")
+
     def test_codex_pi_ai_spec_uses_chatgpt_backend(self) -> None:
         client = PiAiClient(provider_id="openai-codex", model_id=DEFAULT_CODEX_MODEL)
 

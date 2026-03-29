@@ -168,7 +168,7 @@ export PI_AI_SERVER_URL="http://127.0.0.1:3456"
 ```
 
 If you want to use OAuth providers (Gemini CLI or OpenAI Codex), keep pi-ai-server reachable.
-If you only use direct API-key providers (MiniMax/Kimi/DeepSeek) and do not rely on OAuth routes,
+If you only use direct API-key providers (Kimi/DeepSeek) and do not rely on OAuth routes,
 pi-ai-server is optional.
 
 #### 4. Set API keys (API-key providers only)
@@ -181,11 +181,10 @@ export GOOGLE_API_KEY=...          # Google (Gemini API)
 export XAI_API_KEY=...             # xAI (Grok)
 export MOONSHOT_API_KEY=...        # Kimi (direct API)
 export DEEPSEEK_API_KEY=...        # DeepSeek (direct API, no pi-ai-server needed)
-export MINIMAX_API_KEY=...         # MiniMax (direct API, no pi-ai-server needed)
 export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage (market data)
 ```
 
-> **Note:** Kimi, DeepSeek, and MiniMax call APIs directly. OAuth providers and pi-ai-backed API-key providers are routed through pi-ai-server.
+> **Note:** Kimi and DeepSeek call APIs directly. OAuth providers and pi-ai-backed API-key providers are routed through pi-ai-server.
 
 ### Automatic LLM Routing
 
@@ -196,10 +195,10 @@ Routing priority:
 1. Deep routing prefers:
    - `codex:gpt-5.4`
    - then `google-gemini-cli:gemini-3.1-pro-preview`
-   - then API-key providers by priority `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
+   - then API-key providers by priority `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
 2. Quick routing prefers:
    - `google-gemini-cli:gemini-3-flash-preview`
-   - then API-key providers by priority `MiniMax-M2.5` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
+   - then API-key providers by priority `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
 3. Example combined behavior:
    - If Codex OAuth and Gemini CLI OAuth are both available, deep uses `codex:gpt-5.4` while quick uses `google-gemini-cli:gemini-3-flash-preview`
 
@@ -232,7 +231,7 @@ An interface will appear showing results as they load, letting you track the age
 
 ### Implementation Details
 
-We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, and xAI. Kimi, DeepSeek, and MiniMax connect directly.
+We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, and xAI. Kimi and DeepSeek connect directly.
 
 ### Python Usage
 

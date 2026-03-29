@@ -21,15 +21,6 @@ class AnthropicClient(BaseLLMClient):
         self.provider = provider.lower()
 
     def _resolve_auth(self) -> tuple[Optional[str], Optional[str]]:
-        if self.provider == "minimax":
-            api_url = (
-                self.base_url
-                or os.getenv("MINIMAX_ANTHROPIC_BASE_URL")
-                or "https://api.minimax.io/anthropic"
-            )
-            api_key = os.getenv("MINIMAX_API_KEY")
-            return api_url, api_key
-
         api_url = self.base_url or os.getenv("ANTHROPIC_BASE_URL")
         api_key = os.getenv("ANTHROPIC_API_KEY")
         return api_url, api_key
@@ -53,6 +44,4 @@ class AnthropicClient(BaseLLMClient):
 
     def validate_model(self) -> bool:
         """Validate model for Anthropic."""
-        if self.provider == "minimax":
-            return True
         return validate_model("anthropic", self.model)
