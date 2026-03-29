@@ -213,6 +213,12 @@ Research depth maps to debate/discussion rounds: `Deep = 3`, `Shallow = 1`.
 LLM provider/model routing is resolved automatically from available auth/API keys.
 Manual analyst scripts and graph-driven workflows now share the same default analysis windows: market data/indicators use the prior `60` days ending on `trade_date`, company/global news use the prior `7` days, fundamentals use `trade_date` as the snapshot date, and social analysis uses `trade_date` with recent-news context over the prior `7` days.
 
+For e2e smoke testing, use this preset:
+- ticker `WDAY`
+- analyst selection: `Market Analyst` only
+- research depth: `Shallow`
+- LLM override: force both deep and quick routes to `deepseek:deepseek-chat`
+
 <p align="center">
   <img src="assets/cli/cli_init.png" width="100%" style="display: inline-block; margin: 0 2%;">
 </p>
@@ -267,6 +273,28 @@ print(decision)
 ```
 
 See `tradingagents/default_config.py` for all configuration options.
+
+Example e2e smoke-test override:
+
+```python
+from tradingagents.graph.trading_graph import TradingAgentsGraph
+from tradingagents.default_config import DEFAULT_CONFIG
+
+config = DEFAULT_CONFIG.copy()
+config["llm_provider"] = "deepseek"
+config["deep_think_provider"] = "deepseek"
+config["quick_think_provider"] = "deepseek"
+config["deep_think_llm"] = "deepseek-chat"
+config["quick_think_llm"] = "deepseek-chat"
+config["max_debate_rounds"] = 1
+config["max_risk_discuss_rounds"] = 1
+
+ta = TradingAgentsGraph(debug=True, config=config)
+_, decision = ta.propagate("WDAY", "2026-01-15")
+print(decision)
+```
+
+For the interactive CLI, pair the same override with `Shallow` depth and `Market Analyst` as the only selected analyst.
 
 ## Contributing
 

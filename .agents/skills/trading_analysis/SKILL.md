@@ -114,6 +114,8 @@ uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICK
 uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py NVDA 2026-02-25 --analysts market,news,fundamentals --rounds 2
 ```
 
+- **E2E smoke-test preset**: For lightweight end-to-end validation, use ticker `WDAY`, force both deep and quick routes to `deepseek:deepseek-chat`, keep the run at `Shallow` depth (`--rounds 1`), and limit analysts to `market` so the workflow only covers technical analysis.
+
 ---
 
 ## Recommended Workflow

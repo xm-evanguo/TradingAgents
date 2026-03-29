@@ -40,6 +40,7 @@ python test.py
 - Current validation is script-based (`test.py`), with no enforced coverage gate yet.
 - For new features, add focused tests close to the modified domain (dataflow, graph, or CLI behavior) and include at least one failure-path case.
 - Before opening a PR, run affected flows locally (`python -m cli.main analyze` and any targeted scripts) and note what you validated.
+- For e2e smoke testing, use ticker `WDAY`, force both deep and quick LLM routes to `deepseek:deepseek-chat`, select `Shallow` research depth, and enable only `Market Analyst` so the run stays limited to technical analysis.
 
 ## Commit & Pull Request Guidelines
 - Recent history follows Conventional Commit-style prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `security:`.
