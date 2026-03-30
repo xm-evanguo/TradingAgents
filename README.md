@@ -68,6 +68,7 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
 - Sentiment Analyst: Analyzes social media and public sentiment using sentiment scoring algorithms to gauge short-term market mood.
 - News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions.
 - Technical Analyst: Utilizes technical indicators (like MACD and RSI) to detect trading patterns and forecast price movements.
+- Polymarket Analyst: Evaluates market-implied probabilities for macro events, policy decisions, and sector trends directly from prediction markets.
 
 <p align="center">
   <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">
@@ -238,6 +239,8 @@ An interface will appear showing results as they load, letting you track the age
 ### Implementation Details
 
 We built TradingAgents with LangGraph to ensure flexibility and modularity. The framework supports multiple LLM providers via **pi-ai-server**: Google Gemini CLI (OAuth, free), OpenAI Codex (OAuth, subscription), OpenAI, Google, and xAI. Kimi and DeepSeek connect directly.
+
+A built-in **Session Cache** automatically deduplicates API requests for news, fundamentals, and prediction market data during a single process run. This allows multi-ticker workflows to share data like global news and macro Polymarket events across different tickers instantly, reducing latency and saving context tokens.
 
 ### Python Usage
 

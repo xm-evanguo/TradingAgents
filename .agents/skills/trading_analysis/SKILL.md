@@ -40,6 +40,7 @@ Current defaults are:
 - Global news window: prior `7` days ending on `trade_date` with limit `10`
 - Fundamentals snapshot: `trade_date`
 - Social sentiment: `trade_date`; graph/full-analysis also pairs this with recent company-news context over the prior `7` days
+- Polymarket queries: Fetches active, high-volume prediction markets (min volume $1K) from a local session store.
 
 Do not rely on the LLM to infer or ask for these date ranges when the workflow already knows `trade_date`.
 
@@ -96,7 +97,7 @@ uv run python .agents/skills/trading_analysis/scripts/run_social_analyst.py <TIC
 
 ### 5. Full Analysis - Complete Pipeline with AI Decision
 ```bash
-uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICKER> <DATE> [--analysts market,news,fundamentals,social] [--rounds <N>]
+uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICKER> <DATE> [--analysts market,news,fundamentals,social,polymarket] [--rounds <N>]
 ```
 - **Output**: Complete analysis report with Bull/Bear debate, risk assessment, and final BUY/HOLD/SELL decision
 - **Speed**: Slow (runs full LLM pipeline, 2-5 minutes)
@@ -111,7 +112,7 @@ uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICK
 
 **Example with options:**
 ```bash
-uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py NVDA 2026-02-25 --analysts market,news,fundamentals --rounds 2
+uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py NVDA 2026-02-25 --analysts market,news,fundamentals,polymarket --rounds 2
 ```
 
 - **E2E smoke-test preset**: For lightweight end-to-end validation, use ticker `WDAY`, force both deep and quick routes to `deepseek:deepseek-chat`, keep the run at `Shallow` depth (`--rounds 1`), and limit analysts to `market` so the workflow only covers technical analysis.
