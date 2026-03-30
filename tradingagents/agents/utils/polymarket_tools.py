@@ -140,7 +140,7 @@ def _format_event_summary(event: dict[str, Any], markets_limit: int = 3) -> str:
         for market in markets[:markets_limit]:
             if isinstance(market, dict):
                 lines.append(_format_market_line(market))
-        remaining = len(markets) - min(len(markets), markets_limit)
+        remaining = len(markets) - markets_limit
         if remaining > 0:
             lines.append(f"- ... and {remaining} more")
 

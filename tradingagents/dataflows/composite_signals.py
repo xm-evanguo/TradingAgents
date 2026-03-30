@@ -6,6 +6,7 @@ burden of mentally correlating individual indicator values. All calculations
 use data available for free from Yahoo Finance via yfinance.
 """
 
+import os
 from datetime import datetime
 from typing import Annotated
 
@@ -44,8 +45,6 @@ def get_composite_signals(
         end_date = curr_date_dt + pd.DateOffset(days=1)
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")
-
-        import os
 
         os.makedirs(config["data_cache_dir"], exist_ok=True)
         data_file = os.path.join(
@@ -161,8 +160,10 @@ def get_composite_signals(
 
         # ── 3. Volume Surge Detection ────────────────────────────────────
         try:
-            if "volume" in [c.lower() for c in df.columns]:
-                vol_col = [c for c in df.columns if c.lower() == "volume"][0]
+            vol_col = next(
+                (c for c in df.columns if c.lower() == "volume"), None
+            )
+            if vol_col is not None:
                 current_vol = df[vol_col].iloc[-1]
                 avg_vol_20 = df[vol_col].tail(20).mean()
 
