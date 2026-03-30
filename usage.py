@@ -1,10 +1,11 @@
+import os
+
+from tradingagents.runtime_env import bootstrap_runtime_env
+
+bootstrap_runtime_env()
+
 from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
-import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 if not os.environ.get("DEEPSEEK_API_KEY"):
     print("Error: DEEPSEEK_API_KEY environment variable is not set.")

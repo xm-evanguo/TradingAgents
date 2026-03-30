@@ -13,6 +13,8 @@
 ## Build, Test, and Development Commands
 ```bash
 # install dependencies
+uv sync
+# or
 pip install -r requirements.txt
 
 # editable install with CLI script (tradingagents)
@@ -49,7 +51,9 @@ python test.py
 - Link related issues and include terminal screenshots only when CLI output changes materially.
 
 ## Security & Configuration Tips
-- Copy `.env.example` to `.env` and set required keys (`OPENAI_API_KEY`, `ALPHA_VANTAGE_API_KEY`, etc.).
+- Copy `.env.example` to `.env` and set required keys (`OPENAI_API_KEY`, `ALPHA_VANTAGE_API_KEY`, etc.) only for local fallback workflows.
+- Prefer `DOPPLER_PROJECT` + `DOPPLER_CONFIG` (and optional `DOPPLER_TOKEN`) so runtime secrets are loaded from Doppler; explicit process env still wins over Doppler, and Doppler overrides `.env`.
+- Set `DOPPLER_ENABLED=0` when you intentionally want a local-only `.env` run without fetching Doppler secrets.
 - Never commit secrets, local report outputs, or provider tokens.
 
 ## LLM Routing Rules

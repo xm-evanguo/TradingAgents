@@ -1,13 +1,15 @@
-from typing import Optional
 import datetime
-import typer
-from pathlib import Path
 from functools import wraps
-from rich.console import Console
-from dotenv import load_dotenv
+from pathlib import Path
+from typing import Optional
 
-# Load environment variables from .env file
-load_dotenv()
+import typer
+from rich.console import Console
+
+from tradingagents.runtime_env import bootstrap_runtime_env
+
+bootstrap_runtime_env()
+
 from rich.panel import Panel
 from rich.spinner import Spinner
 from rich.live import Live
@@ -23,8 +25,8 @@ from rich import box
 from rich.align import Align
 from rich.rule import Rule
 
-from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.graph.trading_graph import TradingAgentsGraph
 from tradingagents.llm_clients.model_router import resolve_llm_plan
 from cli.models import AnalystType
 from cli.utils import *

@@ -113,6 +113,8 @@ conda activate tradingagents
 
 Install dependencies:
 ```bash
+uv sync
+# or
 pip install -r requirements.txt
 ```
 
@@ -171,7 +173,21 @@ If you want to use OAuth providers (Gemini CLI or OpenAI Codex), keep pi-ai-serv
 If you only use direct API-key providers (Kimi/DeepSeek) and do not rely on OAuth routes,
 pi-ai-server is optional.
 
-#### 4. Set API keys (API-key providers only)
+#### 4. Load API keys
+
+For shared or hosted setups, prefer Doppler so TradingAgents pulls any required API keys at startup:
+
+```bash
+export DOPPLER_PROJECT=your-project
+export DOPPLER_CONFIG=dev
+# optional when the CLI is already logged in:
+export DOPPLER_TOKEN=...
+```
+
+Explicit shell environment variables still win over Doppler, and Doppler overrides values from `.env`.
+Set `DOPPLER_ENABLED=0` if you intentionally want a local-only `.env` run.
+
+If you do not use Doppler, set the relevant environment variable manually:
 
 For providers that require API keys, set the relevant environment variable:
 
