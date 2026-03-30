@@ -1,13 +1,13 @@
 """LangChain ChatModel wrapper for the pi-ai-server local HTTP service.
 
-pi-ai-server (from https://github.com/xm-evanguo/pi-mono) is a lightweight
+pi-ai-server (used with https://github.com/badlogic/pi-mono) is a lightweight
 local HTTP server that exposes a unified LLM API with built-in OAuth and
 API-key support.  This client talks to it via plain HTTP so TradingAgents
 doesn't need provider-specific SDKs (except for DeepSeek, which pi-ai
 doesn't support and is kept on the direct OpenAI-compat path).
 
 For local development, TradingAgents can auto-start pi-ai-server when
-PI_AI_SERVER_CMD (or default pi-mono paths) is configured. You can also
+PI_AI_SERVER_CMD (or legacy pi-mono paths, or the bundled compat server) is configured. You can also
 start it manually and point PI_AI_SERVER_URL to the running instance.
 
 For OAuth providers (google-gemini-cli, openai-codex) the client fetches a

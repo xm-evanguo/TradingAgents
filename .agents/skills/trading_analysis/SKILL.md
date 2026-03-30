@@ -26,8 +26,11 @@ In this workspace, that root is:
 The `.env` file must be configured with the necessary API keys.
 If you want OAuth routes (Codex/Gemini CLI), pi-ai-server must be reachable and authenticated.
 TradingAgents will auto-start pi-ai-server for localhost URLs when `PI_AI_SERVER_CMD`
-or the default `~/code/pi-mono/packages/ai-server/*` paths are available.
-Use `PI_AI_SERVER_CMD`, `PI_AI_SERVER_CWD`, and `PI_AI_SERVER_URL` for custom setups.
+is set. For current `badlogic/pi-mono` checkouts, build `~/code/pi-mono/packages/ai`
+and use the bundled `scripts/pi_ai_server_compat.mjs` server. TradingAgents still
+checks legacy `~/code/pi-mono/packages/ai-server/*` paths first for older layouts,
+then falls back to the bundled compat server. Use `PI_MONO_DIR`, `PI_AI_SERVER_CMD`,
+`PI_AI_SERVER_CWD`, and `PI_AI_SERVER_URL` for custom setups.
 Use `uv run python` for script execution so commands do not depend on a fixed `.venv` path.
 
 ## Default Analysis Windows

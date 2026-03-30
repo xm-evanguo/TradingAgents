@@ -120,17 +120,18 @@ pip install -r requirements.txt
 
 ### Required APIs
 
-TradingAgents uses **[pi-ai-server](https://github.com/xm-evanguo/pi-mono)** as a unified local HTTP proxy for LLM providers. It handles OAuth flows (Gemini CLI, OpenAI Codex) and API key routing automatically.
+TradingAgents uses a local `pi-ai-server` compatibility layer built around
+**[badlogic/pi-mono](https://github.com/badlogic/pi-mono)**. It handles OAuth
+flows (Gemini CLI, OpenAI Codex) and API key routing automatically.
 
-#### 1. Build pi-ai-server
+#### 1. Clone and build pi-mono
 
 ```bash
 # Clone the pi-mono repository
-git clone https://github.com/xm-evanguo/pi-mono ~/code/pi-mono
+git clone https://github.com/badlogic/pi-mono.git ~/code/pi-mono
 
-# Build both packages
+# Build the ai package used by TradingAgents' bundled compat server
 cd ~/code/pi-mono/packages/ai && npm install && npm run build
-cd ~/code/pi-mono/packages/ai-server && npm install && npm run build
 ```
 
 #### 2. Authenticate (OAuth providers only)
@@ -146,21 +147,24 @@ node ~/code/pi-mono/packages/ai/dist/cli.js login openai-codex
 #### 3. Start pi-ai-server (optional)
 
 ```bash
-node ~/code/pi-mono/packages/ai-server/dist/server.js
+cd /path/to/TradingAgents
+PI_MONO_DIR=~/code/pi-mono node scripts/pi_ai_server_compat.mjs
 # → pi-ai-server listening on http://127.0.0.1:3456
 ```
 
 TradingAgents now auto-starts `pi-ai-server` when it detects OAuth-capable routing and
-`PI_AI_SERVER_URL` points to localhost. By default it looks for:
+`PI_AI_SERVER_URL` points to localhost. For current `badlogic/pi-mono` checkouts,
+the supported setup is to build `packages/ai` and use the bundled
+`scripts/pi_ai_server_compat.mjs` server. The code still checks legacy
+`packages/ai-server/*` paths first for older pi-mono layouts, then falls back
+to the bundled compat server.
 
-- `~/code/pi-mono/packages/ai-server/dist/server.js`
-- or `~/code/pi-mono/packages/ai-server/src/server.ts`
-
-If your server lives elsewhere, configure:
+If your pi-mono lives elsewhere, configure:
 
 ```bash
-export PI_AI_SERVER_CMD="node /absolute/path/to/packages/ai-server/dist/server.js"
-export PI_AI_SERVER_CWD="/absolute/path/to/pi-mono"
+export PI_MONO_DIR="/absolute/path/to/pi-mono"
+export PI_AI_SERVER_CMD="node /absolute/path/to/TradingAgents/scripts/pi_ai_server_compat.mjs"
+export PI_AI_SERVER_CWD="/absolute/path/to/TradingAgents"
 ```
 
 You can still start it manually and set a custom URL:
