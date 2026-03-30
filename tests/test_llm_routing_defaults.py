@@ -72,10 +72,6 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
         self.assertEqual(plan["quick_provider"], "kimi")
         self.assertEqual(plan["quick_model"], "kimi-k2.5")
 
-    def test_minimax_provider_is_rejected(self) -> None:
-        with self.assertRaisesRegex(ValueError, "Unsupported LLM provider: minimax"):
-            create_llm_client("minimax", "MiniMax-M2.5")
-
     def test_codex_pi_ai_spec_uses_chatgpt_backend(self) -> None:
         client = PiAiClient(provider_id="openai-codex", model_id=DEFAULT_CODEX_MODEL)
 

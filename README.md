@@ -66,9 +66,8 @@ Our framework decomposes complex trading tasks into specialized roles. This ensu
 ### Analyst Team
 - Fundamentals Analyst: Evaluates company financials and performance metrics, identifying intrinsic values and potential red flags.
 - Sentiment Analyst: Analyzes social media and public sentiment using sentiment scoring algorithms to gauge short-term market mood.
-- News Analyst: Monitors global news and macroeconomic indicators, interpreting the impact of events on market conditions.
+- News Analyst: Monitors global news, macroeconomic indicators, and market-implied probabilities from prediction markets, interpreting the impact of events on market conditions.
 - Technical Analyst: Utilizes technical indicators (like MACD and RSI) to detect trading patterns and forecast price movements.
-- Polymarket Analyst: Evaluates market-implied probabilities for macro events, policy decisions, and sector trends directly from prediction markets.
 
 <p align="center">
   <img src="assets/analyst.png" width="100%" style="display: inline-block; margin: 0 2%;">

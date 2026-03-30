@@ -62,14 +62,14 @@ uv run python .agents/skills/trading_analysis/scripts/run_market_analyst.py NVDA
 
 ---
 
-### 2. News Analyst - News, Global Context & Insider Transactions
+### 2. News Analyst - News, Global Context, Insider Transactions & Prediction Markets
 ```bash
 uv run python .agents/skills/trading_analysis/scripts/run_news_analyst.py <TICKER> <DATE>
 ```
-- **Output**: Recent company news, global macro news, insider buy/sell activity
+- **Output**: Recent company news, global macro news, insider buy/sell activity, and prediction market probabilities
 - **Speed**: Fast (no LLM, direct API call)
-- **Use when**: User asks about recent events, company news, insider activity
-- **Default window**: Company/global news use the prior `7` days ending on `<DATE>`; insider transactions are fetched directly for the ticker
+- **Use when**: User asks about recent events, company news, insider activity, or market-implied odds for macro events
+- **Default window**: Company/global news use the prior `7` days ending on `<DATE>`; insider transactions are fetched directly for the ticker; prediction markets fetch active, high-volume markets (min $1K volume).
 
 ---
 
@@ -97,7 +97,7 @@ uv run python .agents/skills/trading_analysis/scripts/run_social_analyst.py <TIC
 
 ### 5. Full Analysis - Complete Pipeline with AI Decision
 ```bash
-uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICKER> <DATE> [--analysts market,news,fundamentals,social,polymarket] [--rounds <N>]
+uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICKER> <DATE> [--analysts market,news,fundamentals,social] [--rounds <N>]
 ```
 - **Output**: Complete analysis report with Bull/Bear debate, risk assessment, and final BUY/HOLD/SELL decision
 - **Speed**: Slow (runs full LLM pipeline, 2-5 minutes)
@@ -112,7 +112,7 @@ uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py <TICK
 
 **Example with options:**
 ```bash
-uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py NVDA 2026-02-25 --analysts market,news,fundamentals,polymarket --rounds 2
+uv run python .agents/skills/trading_analysis/scripts/run_full_analysis.py NVDA 2026-02-25 --analysts market,news,fundamentals --rounds 2
 ```
 
 - **E2E smoke-test preset**: For lightweight end-to-end validation, use ticker `WDAY`, force both deep and quick routes to `deepseek:deepseek-chat`, keep the run at `Shallow` depth (`--rounds 1`), and limit analysts to `market` so the workflow only covers technical analysis.

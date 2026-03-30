@@ -9,7 +9,7 @@ Usage:
 
 Options:
     --analysts   Comma-separated list of analysts to run (default: market,news,fundamentals)
-                 Choices: market, news, fundamentals, social, polymarket
+                 Choices: market, news, fundamentals, social
     --rounds     Max debate rounds, 1-5 (default: 1 for speed)
 
 Examples:
@@ -73,7 +73,7 @@ def main():
         sys.exit(1)
 
     # Parse analyst list
-    valid_analysts = {"market", "news", "fundamentals", "social", "polymarket"}
+    valid_analysts = {"market", "news", "fundamentals", "social"}
     selected_analysts = [a.strip() for a in args.analysts.split(",")]
     invalid = [a for a in selected_analysts if a not in valid_analysts]
     if invalid:
@@ -133,7 +133,6 @@ def main():
                 "news_report": final_state.get("news_report", ""),
                 "fundamentals_report": final_state.get("fundamentals_report", ""),
                 "sentiment_report": final_state.get("sentiment_report", ""),
-                "polymarket_report": final_state.get("polymarket_report", ""),
             },
             "investment_debate": {
                 "bull_argument": final_state.get("investment_debate_state", {}).get("bull_history", ""),
