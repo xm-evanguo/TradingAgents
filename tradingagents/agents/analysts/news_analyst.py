@@ -3,6 +3,7 @@ from tradingagents.agents.utils.agent_utils import (
     get_global_news,
     get_insider_transactions,
     get_news,
+    get_prediction_market_data,
 )
 from tradingagents.analysis_context import get_default_analysis_context
 from tradingagents.prompts import get_agent_prompt
@@ -18,6 +19,7 @@ def create_news_analyst(llm):
             get_news,
             get_global_news,
             get_insider_transactions,
+            get_prediction_market_data,
         ]
 
         system_message = get_agent_prompt(

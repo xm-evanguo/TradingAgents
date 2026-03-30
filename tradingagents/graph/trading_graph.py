@@ -32,6 +32,7 @@ from tradingagents.agents.utils.agent_utils import (
     get_insider_transactions,
     get_global_news,
     get_social_media_sentiment,
+    get_prediction_market_data,
 )
 
 from .conditional_logic import ConditionalLogic
@@ -201,6 +202,8 @@ class TradingAgentsGraph:
                     get_news,
                     get_global_news,
                     get_insider_transactions,
+                    # Polymarket prediction market data
+                    get_prediction_market_data,
                 ]
             ),
             "fundamentals": ToolNode(

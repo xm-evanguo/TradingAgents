@@ -21,6 +21,9 @@ from tradingagents.agents.utils.news_data_tools import (
 from tradingagents.agents.utils.social_media_tools import (
     get_social_media_sentiment
 )
+from tradingagents.agents.utils.polymarket_tools import (
+    get_prediction_market_data
+)
 
 def create_msg_delete():
     def delete_messages(state):
