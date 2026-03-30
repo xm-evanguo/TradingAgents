@@ -9,6 +9,10 @@ from .y_finance import (
     get_cashflow as get_yfinance_cashflow,
     get_income_statement as get_yfinance_income_statement,
     get_insider_transactions as get_yfinance_insider_transactions,
+    get_analyst_price_targets as get_yfinance_analyst_price_targets,
+    get_analyst_recommendations as get_yfinance_analyst_recommendations,
+    get_earnings_dates as get_yfinance_earnings_dates,
+    get_short_interest as get_yfinance_short_interest,
 )
 from .yfinance_news import get_news_yfinance, get_global_news_yfinance
 from .alpha_vantage import (
@@ -24,6 +28,7 @@ from .alpha_vantage import (
 )
 from .alpha_vantage_common import AlphaVantageRateLimitError
 from .social_media_utils import get_social_media_sentiment as get_grok_social_media_sentiment
+from .session_cache import SessionCache
 
 # Configuration and routing logic
 from .config import get_config
@@ -48,7 +53,11 @@ TOOLS_CATEGORIES = {
             "get_fundamentals",
             "get_balance_sheet",
             "get_cashflow",
-            "get_income_statement"
+            "get_income_statement",
+            "get_analyst_price_targets",
+            "get_analyst_recommendations",
+            "get_earnings_dates",
+            "get_short_interest"
         ]
     },
     "news_data": {
@@ -102,6 +111,18 @@ VENDOR_METHODS = {
         "alpha_vantage": get_alpha_vantage_income_statement,
         "yfinance": get_yfinance_income_statement,
     },
+    "get_analyst_price_targets": {
+        "yfinance": get_yfinance_analyst_price_targets,
+    },
+    "get_analyst_recommendations": {
+        "yfinance": get_yfinance_analyst_recommendations,
+    },
+    "get_earnings_dates": {
+        "yfinance": get_yfinance_earnings_dates,
+    },
+    "get_short_interest": {
+        "yfinance": get_yfinance_short_interest,
+    },
     # news_data
     "get_news": {
         "alpha_vantage": get_alpha_vantage_news,
@@ -143,8 +164,24 @@ def get_vendor(category: str, method: str = None) -> str:
     # Fall back to category-level configuration
     return config.get("data_vendors", {}).get(category, "default")
 
+def _get_cache_ttl(category: str) -> int:
+    """Look up the session-cache TTL for *category* from config."""
+    config = get_config()
+    ttl_map = config.get("session_cache_ttl", {})
+    return ttl_map.get(category, ttl_map.get("default", 3600))
+
+
 def route_to_vendor(method: str, *args, **kwargs):
-    """Route method calls to appropriate vendor implementation with fallback support."""
+    """Route method calls to appropriate vendor implementation with caching and fallback support."""
+    # ── Session-cache lookup ─────────────────────────────────────────
+    cache = SessionCache.get_instance()
+    cache_key = (method, *args, *sorted(kwargs.items()))
+
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # ── Vendor routing (existing logic) ──────────────────────────────
     category = get_category_for_method(method)
     vendor_config = get_vendor(category, method)
     primary_vendors = [v.strip() for v in vendor_config.split(',')]
@@ -167,7 +204,11 @@ def route_to_vendor(method: str, *args, **kwargs):
         impl_func = vendor_impl[0] if isinstance(vendor_impl, list) else vendor_impl
 
         try:
-            return impl_func(*args, **kwargs)
+            result = impl_func(*args, **kwargs)
+            # Store in cache before returning
+            ttl = _get_cache_ttl(category)
+            cache.put(cache_key, result, ttl_seconds=ttl)
+            return result
         except AlphaVantageRateLimitError:
             continue  # Only rate limits trigger fallback
 

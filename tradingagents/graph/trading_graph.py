@@ -24,10 +24,15 @@ from tradingagents.dataflows.config import set_config
 from tradingagents.agents.utils.agent_utils import (
     get_stock_data,
     get_indicators,
+    get_composite_signals,
     get_fundamentals,
     get_balance_sheet,
     get_cashflow,
     get_income_statement,
+    get_analyst_price_targets,
+    get_analyst_recommendations,
+    get_earnings_dates,
+    get_short_interest,
     get_news,
     get_insider_transactions,
     get_global_news,
@@ -186,6 +191,8 @@ class TradingAgentsGraph:
                     get_stock_data,
                     # Technical indicators
                     get_indicators,
+                    # Pre-computed composite signals
+                    get_composite_signals,
                 ]
             ),
             "social": ToolNode(
@@ -213,6 +220,11 @@ class TradingAgentsGraph:
                     get_balance_sheet,
                     get_cashflow,
                     get_income_statement,
+                    # Analyst consensus & market structure
+                    get_analyst_price_targets,
+                    get_analyst_recommendations,
+                    get_earnings_dates,
+                    get_short_interest,
                 ]
             ),
         }

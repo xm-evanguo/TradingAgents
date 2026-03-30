@@ -5,13 +5,18 @@ from tradingagents.agents.utils.core_stock_tools import (
     get_stock_data
 )
 from tradingagents.agents.utils.technical_indicators_tools import (
-    get_indicators
+    get_indicators,
+    get_composite_signals,
 )
 from tradingagents.agents.utils.fundamental_data_tools import (
     get_fundamentals,
     get_balance_sheet,
     get_cashflow,
-    get_income_statement
+    get_income_statement,
+    get_analyst_price_targets,
+    get_analyst_recommendations,
+    get_earnings_dates,
+    get_short_interest,
 )
 from tradingagents.agents.utils.news_data_tools import (
     get_news,

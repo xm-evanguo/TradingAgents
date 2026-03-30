@@ -36,8 +36,23 @@ class StockstatsUtils:
         )
 
         if os.path.exists(data_file):
-            data = pd.read_csv(data_file)
-            data["Date"] = pd.to_datetime(data["Date"])
+            # Invalidate cache if older than 24 hours
+            import time
+            cache_age_hours = (time.time() - os.path.getmtime(data_file)) / 3600
+            if cache_age_hours < 24:
+                data = pd.read_csv(data_file)
+                data["Date"] = pd.to_datetime(data["Date"])
+            else:
+                data = yf.download(
+                    symbol,
+                    start=start_date_str,
+                    end=end_date_str,
+                    multi_level_index=False,
+                    progress=False,
+                    auto_adjust=True,
+                )
+                data = data.reset_index()
+                data.to_csv(data_file, index=False)
         else:
             data = yf.download(
                 symbol,

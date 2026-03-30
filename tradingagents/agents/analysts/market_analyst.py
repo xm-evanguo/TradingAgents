@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators
+from tradingagents.agents.utils.agent_utils import get_stock_data, get_indicators, get_composite_signals
 from tradingagents.analysis_context import get_default_analysis_context
 from tradingagents.prompts import get_agent_prompt
 
@@ -14,6 +14,7 @@ def create_market_analyst(llm):
         tools = [
             get_stock_data,
             get_indicators,
+            get_composite_signals,
         ]
 
         system_message = get_agent_prompt(

@@ -125,10 +125,10 @@ def _format_event_summary(event: dict[str, Any], markets_limit: int = 3) -> str:
 
     lines = [title]
 
+    # Always show volume so the LLM can judge event significance
     volume = _first_present(event, "volume", "volume24hr")
-    if volume is not None:
-        label = "24h volume" if event.get("volume24hr") is not None else "Volume"
-        lines.append(f"Volume: {label} {_format_money(volume)}")
+    volume_str = _format_money(volume) if volume is not None else "N/A"
+    lines.append(f"Total Volume: {volume_str}")
 
     end_date = event.get("endDate") or event.get("end_date_iso")
     if end_date and isinstance(end_date, str):
@@ -153,7 +153,10 @@ def _format_event_summary(event: dict[str, Any], markets_limit: int = 3) -> str:
 def _format_market_summary(market: dict[str, Any]) -> str:
     question = _first_present(market, "question", "title") or "Unknown market"
     shown, volume_part = _format_market_odds(market)
-    lines = [question, f"Odds: {shown}{volume_part}"]
+    # Always show volume so the LLM can judge market significance
+    volume = _first_present(market, "volume", "volumeNum")
+    volume_str = _format_money(volume) if volume is not None else "N/A"
+    lines = [question, f"Odds: {shown}", f"Total Volume: {volume_str}"]
     end_date = market.get("endDate") or market.get("end_date_iso")
     if end_date and isinstance(end_date, str):
         lines.append(f"Ends: {end_date[:10]}")
@@ -175,55 +178,150 @@ def _normalize_search_results(data: Any) -> list[dict[str, Any]]:
     return []
 
 
+# ---------------------------------------------------------------------------
+# Local event store — fetch once per session, search locally for all queries
+# ---------------------------------------------------------------------------
+
+_LOCAL_STORE_CACHE_KEY = ("polymarket_local_event_store",)
+_LOCAL_STORE_TTL = 1800  # 30 minutes
+_LOCAL_STORE_SIZE = 200  # number of high-volume events to pre-fetch
+_MIN_VOLUME = 1_000     # noise floor — filter spam/test markets; LLM judges significance
+
+
+def _get_event_volume(event: dict[str, Any]) -> float:
+    """Extract the best available volume figure from an event dict."""
+    raw = _first_present(event, "volume", "volume24hr", "volumeNum")
+    return _safe_float(raw) or 0.0
+
+
+def _get_local_event_store(include_closed: bool = False) -> list[dict[str, Any]]:
+    """Return a broad set of active Polymarket events, fetched once per session.
+
+    The first call hits the ``/events`` endpoint for up to
+    ``_LOCAL_STORE_SIZE`` high-volume events and caches the result.
+    Subsequent calls return the cache.
+    """
+    from tradingagents.dataflows.session_cache import SessionCache
+
+    cache = SessionCache.get_instance()
+    store_key = (*_LOCAL_STORE_CACHE_KEY, include_closed)
+
+    cached = cache.get(store_key)
+    if cached is not None:
+        return cached
+
+    try:
+        events = _fetch_json(
+            "/events",
+            {
+                "closed": str(include_closed).lower(),
+                "limit": _LOCAL_STORE_SIZE,
+                "order": "volume24hr",
+                "ascending": "false",
+            },
+        )
+    except (urllib.error.URLError, urllib.error.HTTPError):
+        events = []
+
+    if not isinstance(events, list):
+        events = []
+
+    # Keep only valid dicts with meaningful volume
+    events = [
+        e for e in events
+        if isinstance(e, dict) and _get_event_volume(e) >= _MIN_VOLUME
+    ]
+    cache.put(store_key, events, ttl_seconds=_LOCAL_STORE_TTL)
+    return events
+
+
+def _build_haystack(event: dict[str, Any]) -> str:
+    """Concatenate all searchable text for an event into one lower-case string."""
+    parts = [
+        str(_first_present(event, "title", "question") or ""),
+        str(event.get("description") or ""),
+    ]
+    for market in event.get("markets") or []:
+        if isinstance(market, dict):
+            parts.append(
+                str(_first_present(market, "question", "title") or "")
+            )
+    return " ".join(parts).lower()
+
+
+def _score_event(haystack: str, tokens: list[str]) -> int:
+    """Return the count of query tokens found in the haystack (0 = no match)."""
+    return sum(1 for t in tokens if t in haystack)
+
+
+def _search_local_store(
+    query: str, limit: int, include_closed: bool = False,
+) -> list[dict[str, Any]]:
+    """Search the local event store with multi-token fuzzy matching.
+
+    Each token in the query is checked independently against the event's
+    title, description, and market questions.  Events are ranked by how
+    many tokens matched so that partial overlaps still surface results.
+    A match requires at least one token to be present.
+    """
+    events = _get_local_event_store(include_closed)
+    tokens = [t for t in query.lower().split() if len(t) >= 2]
+    if not tokens:
+        return []
+
+    scored: list[tuple[int, dict[str, Any]]] = []
+    for event in events:
+        haystack = _build_haystack(event)
+        score = _score_event(haystack, tokens)
+        if score > 0:
+            scored.append((score, event))
+
+    # Sort by descending token-match count
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    return [event for _, event in scored[:limit]]
+
+
 def _search_events(
     query: str, limit: int, include_closed: bool = False,
 ) -> list[dict[str, Any]]:
-    params = {"query": query, "limit": limit}
+    """Search for Polymarket events with a three-tier strategy:
+
+    1. **Exact SessionCache** — identical (query, limit) seen before.
+    2. **Local event store** — fuzzy multi-token search across a cached
+       set of ~200 high-volume events (one HTTP call per session).
+    3. **API /search fallback** — only if local matching found nothing.
+    """
+    from tradingagents.dataflows.session_cache import SessionCache
+
+    # ── Tier 1: exact query cache ────────────────────────────────────
+    cache = SessionCache.get_instance()
+    cache_key = ("polymarket_search", query.lower().strip(), limit, include_closed)
+
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    # ── Tier 2: local event store (fuzzy) ────────────────────────────
+    local_results = _search_local_store(query, limit, include_closed)
+    if local_results:
+        cache.put(cache_key, local_results, ttl_seconds=_LOCAL_STORE_TTL)
+        return local_results
+
+    # ── Tier 3: remote /search API ───────────────────────────────────
     try:
-        data = _fetch_json("/search", params)
-        results = _normalize_search_results(data)
+        data = _fetch_json("/search", {"query": query, "limit": limit})
+        results = [
+            r for r in _normalize_search_results(data)
+            if _get_event_volume(r) >= _MIN_VOLUME
+        ]
         if results:
-            return results[:limit]
+            results = results[:limit]
+            cache.put(cache_key, results, ttl_seconds=_LOCAL_STORE_TTL)
+            return results
     except urllib.error.HTTPError:
         pass
 
-    # Fallback: fetch high-volume events and filter locally
-    events = _fetch_json(
-        "/events",
-        {
-            "closed": str(include_closed).lower(),
-            "limit": max(limit * 8, 50),
-            "order": "volume24hr",
-            "ascending": "false",
-        },
-    )
-    if not isinstance(events, list):
-        return []
-
-    lowered = query.lower()
-    matches: list[dict[str, Any]] = []
-    for event in events:
-        if not isinstance(event, dict):
-            continue
-        haystacks = [
-            str(_first_present(event, "title", "question") or "").lower(),
-            str(event.get("description") or "").lower(),
-        ]
-        if any(lowered in h for h in haystacks):
-            matches.append(event)
-            continue
-        markets = event.get("markets") or []
-        if isinstance(markets, list):
-            for market in markets:
-                if isinstance(market, dict):
-                    q = str(
-                        _first_present(market, "question", "title") or ""
-                    ).lower()
-                    if lowered in q:
-                        matches.append(event)
-                        break
-
-    return matches[:limit]
+    return []
 
 
 # ---------------------------------------------------------------------------

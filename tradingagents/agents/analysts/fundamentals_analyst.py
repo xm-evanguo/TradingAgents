@@ -4,6 +4,10 @@ from tradingagents.agents.utils.agent_utils import (
     get_cashflow,
     get_fundamentals,
     get_income_statement,
+    get_analyst_price_targets,
+    get_analyst_recommendations,
+    get_earnings_dates,
+    get_short_interest,
 )
 from tradingagents.analysis_context import get_default_analysis_context
 from tradingagents.prompts import get_agent_prompt
@@ -20,6 +24,10 @@ def create_fundamentals_analyst(llm):
             get_balance_sheet,
             get_cashflow,
             get_income_statement,
+            get_analyst_price_targets,
+            get_analyst_recommendations,
+            get_earnings_dates,
+            get_short_interest,
         ]
 
         system_message = get_agent_prompt(

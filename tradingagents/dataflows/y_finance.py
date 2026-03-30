@@ -126,6 +126,58 @@ def get_stock_stats_indicators_window(
             "Usage: Identify overbought (>80) or oversold (<20) conditions and confirm the strength of trends or reversals. "
             "Tips: Use alongside RSI or MACD to confirm signals; divergence between price and MFI can indicate potential reversals."
         ),
+        # Trend Strength
+        "dx_14": (
+            "ADX (14-period): Measures trend strength on a 0-100 scale regardless of direction. "
+            "Usage: Values above 25 indicate a strong trend (use trend-following strategies); "
+            "below 20 suggests a range-bound market (use mean-reversion strategies). "
+            "Tips: ADX doesn't indicate direction, only strength. Combine with moving "
+            "averages or MACD for directional bias. Rising ADX = strengthening trend."
+        ),
+        # Stochastic Oscillator
+        "kdjk": (
+            "Stochastic %K: Fast oscillator measuring price position relative to "
+            "recent high-low range (0-100 scale). "
+            "Usage: Overbought above 80, oversold below 20. Look for %K/%D crossovers "
+            "for entry/exit signals. "
+            "Tips: More responsive than RSI in ranging markets; prone to false signals in strong trends. "
+            "Best combined with trend filters like ADX."
+        ),
+        "kdjd": (
+            "Stochastic %D: Smoothed version of %K (3-period SMA of %K), acts as signal line. "
+            "Usage: %K crossing above %D in oversold territory is a buy signal; "
+            "%K crossing below %D in overbought territory is a sell signal. "
+            "Tips: Most reliable when combined with trend-direction confirmation from moving averages."
+        ),
+        # Additional Momentum
+        "cci": (
+            "CCI (Commodity Channel Index): Measures price deviation from its statistical mean. "
+            "Usage: Above +100 = strong uptrend or overbought; below -100 = strong downtrend or oversold. "
+            "Zero-line crossovers provide additional entry signals. "
+            "Tips: Excellent for detecting cyclical turns and breakout confirmation. "
+            "Works well with trend filters to distinguish breakouts from reversals."
+        ),
+        "wr_14": (
+            "Williams %R (14-period): Fast momentum oscillator on an inverted scale (-100 to 0). "
+            "Usage: Below -80 = oversold (potential buy); above -20 = overbought (potential sell). "
+            "Tips: Faster than RSI at detecting reversals; good for timing entries but needs "
+            "trend filter to avoid whipsaws. Divergence with price is a strong reversal signal."
+        ),
+        "close_10_roc": (
+            "ROC (10-period Rate of Change): Percentage change in price over the last 10 periods. "
+            "Usage: Positive values indicate upward momentum; negative values indicate downward momentum. "
+            "Zero-line crossovers signal momentum shifts. "
+            "Tips: Simpler and faster than MACD. Extreme readings may signal exhaustion. "
+            "Combine with volume indicators to confirm momentum quality."
+        ),
+        # Additional Moving Average
+        "close_20_sma": (
+            "20 SMA: Short-to-medium term trend indicator and Bollinger Band midline. "
+            "Usage: Price above 20 SMA = short-term bullish; below = bearish. "
+            "Serves as dynamic support/resistance and the natural companion to Bollinger Bands. "
+            "Tips: Bridges the gap between the fast 10 EMA and the slower 50 SMA. "
+            "Useful for swing trading setups and mean-reversion entries."
+        ),
     }
 
     if indicator not in best_ind_params:
@@ -232,8 +284,23 @@ def _get_stock_stats_bulk(
         )
         
         if os.path.exists(data_file):
-            data = pd.read_csv(data_file)
-            data["Date"] = pd.to_datetime(data["Date"])
+            # Invalidate cache if older than 24 hours
+            import time
+            cache_age_hours = (time.time() - os.path.getmtime(data_file)) / 3600
+            if cache_age_hours < 24:
+                data = pd.read_csv(data_file)
+                data["Date"] = pd.to_datetime(data["Date"])
+            else:
+                data = yf.download(
+                    symbol,
+                    start=start_date_str,
+                    end=end_date_str,
+                    multi_level_index=False,
+                    progress=False,
+                    auto_adjust=True,
+                )
+                data = data.reset_index()
+                data.to_csv(data_file, index=False)
         else:
             data = yf.download(
                 symbol,
@@ -462,3 +529,133 @@ def get_insider_transactions(
         
     except Exception as e:
         return f"Error retrieving insider transactions for {ticker}: {str(e)}"
+
+
+def get_analyst_price_targets(
+    ticker: Annotated[str, "ticker symbol of the company"],
+    curr_date: Annotated[str, "current date (not used for yfinance)"] = None
+):
+    """Get analyst price targets from yfinance."""
+    try:
+        ticker_obj = yf.Ticker(ticker.upper())
+        targets = ticker_obj.analyst_price_targets
+
+        if targets is None or (hasattr(targets, 'empty') and targets.empty):
+            return f"No analyst price targets found for symbol '{ticker}'"
+
+        header = f"# Analyst Price Targets for {ticker.upper()}\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+
+        if isinstance(targets, dict):
+            lines = []
+            for key, value in targets.items():
+                if value is not None:
+                    lines.append(f"{key}: {value}")
+            return header + "\n".join(lines)
+        else:
+            # DataFrame or Series
+            return header + str(targets)
+
+    except Exception as e:
+        return f"Error retrieving analyst price targets for {ticker}: {str(e)}"
+
+
+def get_analyst_recommendations(
+    ticker: Annotated[str, "ticker symbol of the company"],
+    curr_date: Annotated[str, "current date (not used for yfinance)"] = None
+):
+    """Get analyst recommendations (buy/sell/hold consensus) from yfinance."""
+    try:
+        ticker_obj = yf.Ticker(ticker.upper())
+        recs = ticker_obj.recommendations
+
+        if recs is None or recs.empty:
+            return f"No analyst recommendations found for symbol '{ticker}'"
+
+        # Get last 10 recommendations for recency
+        recent_recs = recs.tail(10)
+        csv_string = recent_recs.to_csv()
+
+        header = f"# Analyst Recommendations for {ticker.upper()}\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        header += f"# Showing last {len(recent_recs)} recommendations\n\n"
+
+        # Also add the summary if available
+        try:
+            summary = ticker_obj.recommendations_summary
+            if summary is not None and not summary.empty:
+                header += f"## Recommendation Summary:\n{summary.to_csv()}\n\n"
+        except Exception:
+            pass
+
+        return header + "## Recent Recommendations:\n" + csv_string
+
+    except Exception as e:
+        return f"Error retrieving analyst recommendations for {ticker}: {str(e)}"
+
+
+def get_earnings_dates(
+    ticker: Annotated[str, "ticker symbol of the company"],
+    curr_date: Annotated[str, "current date (not used for yfinance)"] = None
+):
+    """Get upcoming and recent earnings dates from yfinance."""
+    try:
+        ticker_obj = yf.Ticker(ticker.upper())
+        earnings = ticker_obj.earnings_dates
+
+        if earnings is None or earnings.empty:
+            return f"No earnings dates found for symbol '{ticker}'"
+
+        # Show upcoming and last few earnings
+        csv_string = earnings.head(8).to_csv()
+
+        header = f"# Earnings Dates for {ticker.upper()}\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += "Note: Future dates are upcoming earnings. Past dates show EPS estimate vs surprise.\n\n"
+
+        return header + csv_string
+
+    except Exception as e:
+        return f"Error retrieving earnings dates for {ticker}: {str(e)}"
+
+
+def get_short_interest(
+    ticker: Annotated[str, "ticker symbol of the company"],
+    curr_date: Annotated[str, "current date (not used for yfinance)"] = None
+):
+    """Get short interest data from yfinance ticker info."""
+    try:
+        ticker_obj = yf.Ticker(ticker.upper())
+        info = ticker_obj.info
+
+        if not info:
+            return f"No data found for symbol '{ticker}'"
+
+        short_fields = [
+            ("Short Ratio (Days to Cover)", info.get("shortRatio")),
+            ("Short % of Float", info.get("shortPercentOfFloat")),
+            ("Short % of Shares Outstanding", info.get("sharesPercentSharesOut")),
+            ("Shares Short", info.get("sharesShort")),
+            ("Shares Short Prior Month", info.get("sharesShortPriorMonth")),
+            ("Short Interest Date", info.get("dateShortInterest")),
+            ("Float Shares", info.get("floatShares")),
+            ("Shares Outstanding", info.get("sharesOutstanding")),
+            ("Held % by Insiders", info.get("heldPercentInsiders")),
+            ("Held % by Institutions", info.get("heldPercentInstitutions")),
+        ]
+
+        lines = []
+        for label, value in short_fields:
+            if value is not None:
+                lines.append(f"{label}: {value}")
+
+        if not lines:
+            return f"No short interest data available for '{ticker}'"
+
+        header = f"# Short Interest Data for {ticker.upper()}\n"
+        header += f"# Data retrieved on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+
+        return header + "\n".join(lines)
+
+    except Exception as e:
+        return f"Error retrieving short interest for {ticker}: {str(e)}"

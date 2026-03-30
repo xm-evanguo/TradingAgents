@@ -39,4 +39,15 @@ DEFAULT_CONFIG = {
     "tool_vendors": {
         # Example: "get_stock_data": "alpha_vantage",  # Override category default
     },
+    # Session-cache TTLs (seconds) — eliminates redundant API calls across
+    # tickers within the same process.  Keys match data_vendors categories.
+    "session_cache_ttl": {
+        "default": 3600,           # 1 hour
+        "polymarket": 1800,        # 30 min — odds change faster
+        "news_data": 3600,         # 1 hour
+        "social_media": 3600,      # 1 hour
+        "fundamental_data": 7200,  # 2 hours — fundamentals are slow-moving
+        "core_stock_apis": 3600,   # 1 hour
+        "technical_indicators": 3600,
+    },
 }

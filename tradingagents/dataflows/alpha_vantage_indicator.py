@@ -39,7 +39,15 @@ def get_indicator(
         "boll_ub": ("Bollinger Upper Band", "close"),
         "boll_lb": ("Bollinger Lower Band", "close"),
         "atr": ("ATR", None),
-        "vwma": ("VWMA", "close")
+        "vwma": ("VWMA", "close"),
+        "mfi": ("MFI", None),
+        "dx_14": ("ADX", None),
+        "kdjk": ("Stochastic %K", "close"),
+        "kdjd": ("Stochastic %D", "close"),
+        "cci": ("CCI", "close"),
+        "wr_14": ("Williams %R", "close"),
+        "close_10_roc": ("ROC", "close"),
+        "close_20_sma": ("20 SMA", "close"),
     }
 
     indicator_descriptions = {
@@ -54,7 +62,15 @@ def get_indicator(
         "boll_ub": "Bollinger Upper Band: Typically 2 standard deviations above the middle line. Usage: Signals potential overbought conditions and breakout zones. Tips: Confirm signals with other tools; prices may ride the band in strong trends.",
         "boll_lb": "Bollinger Lower Band: Typically 2 standard deviations below the middle line. Usage: Indicates potential oversold conditions. Tips: Use additional analysis to avoid false reversal signals.",
         "atr": "ATR: Averages true range to measure volatility. Usage: Set stop-loss levels and adjust position sizes based on current market volatility. Tips: It's a reactive measure, so use it as part of a broader risk management strategy.",
-        "vwma": "VWMA: A moving average weighted by volume. Usage: Confirm trends by integrating price action with volume data. Tips: Watch for skewed results from volume spikes; use in combination with other volume analyses."
+        "vwma": "VWMA: A moving average weighted by volume. Usage: Confirm trends by integrating price action with volume data. Tips: Watch for skewed results from volume spikes; use in combination with other volume analyses.",
+        "mfi": "MFI: The Money Flow Index measures buying and selling pressure using price and volume. Usage: Overbought >80, oversold <20. Tips: Divergence between price and MFI signals potential reversals.",
+        "dx_14": "ADX (14-period): Measures trend strength on a 0-100 scale. Usage: Above 25 = strong trend; below 20 = range-bound. Tips: Doesn't indicate direction, only strength. Combine with MAs for directional bias.",
+        "kdjk": "Stochastic %K: Fast oscillator measuring price position relative to recent high-low range. Usage: Overbought >80, oversold <20. Tips: More responsive than RSI in ranging markets; use with trend filters.",
+        "kdjd": "Stochastic %D: Smoothed signal line for Stochastic. Usage: %K/%D crossovers generate entry/exit signals. Tips: Most reliable with trend-direction confirmation.",
+        "cci": "CCI: Measures price deviation from statistical mean. Usage: Above +100 = strong uptrend/overbought; below -100 = strong downtrend/oversold. Tips: Excellent for cyclical turn detection.",
+        "wr_14": "Williams %R (14-period): Fast momentum oscillator (-100 to 0). Usage: Below -80 = oversold; above -20 = overbought. Tips: Faster than RSI; needs trend filter to avoid whipsaws.",
+        "close_10_roc": "ROC (10-period): Percentage price change over 10 periods. Usage: Positive = upward momentum; zero-line crossovers signal shifts. Tips: Simpler than MACD; extreme readings may signal exhaustion.",
+        "close_20_sma": "20 SMA: Short-to-medium term trend indicator and Bollinger Band midline. Usage: Price above = bullish; below = bearish. Tips: Bridges the 10 EMA and 50 SMA gap.",
     }
 
     if indicator not in supported_indicators:
@@ -144,8 +160,57 @@ def get_indicator(
             })
         elif indicator == "vwma":
             # Alpha Vantage doesn't have direct VWMA, so we'll return an informative message
-            # In a real implementation, this would need to be calculated from OHLCV data
             return f"## VWMA (Volume Weighted Moving Average) for {symbol}:\n\nVWMA calculation requires OHLCV data and is not directly available from Alpha Vantage API.\nThis indicator would need to be calculated from the raw stock data using volume-weighted price averaging.\n\n{indicator_descriptions.get('vwma', 'No description available.')}"
+        elif indicator == "mfi":
+            data = _make_api_request("MFI", {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": str(time_period),
+                "datatype": "csv"
+            })
+        elif indicator == "dx_14":
+            data = _make_api_request("ADX", {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": "14",
+                "datatype": "csv"
+            })
+        elif indicator in ["kdjk", "kdjd"]:
+            data = _make_api_request("STOCH", {
+                "symbol": symbol,
+                "interval": interval,
+                "datatype": "csv"
+            })
+        elif indicator == "cci":
+            data = _make_api_request("CCI", {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": str(time_period),
+                "datatype": "csv"
+            })
+        elif indicator == "wr_14":
+            data = _make_api_request("WILLR", {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": "14",
+                "datatype": "csv"
+            })
+        elif indicator == "close_10_roc":
+            data = _make_api_request("ROC", {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": "10",
+                "series_type": series_type,
+                "datatype": "csv"
+            })
+        elif indicator == "close_20_sma":
+            data = _make_api_request("SMA", {
+                "symbol": symbol,
+                "interval": interval,
+                "time_period": "20",
+                "series_type": series_type,
+                "datatype": "csv"
+            })
         else:
             return f"Error: Indicator {indicator} not implemented yet."
 
@@ -166,7 +231,10 @@ def get_indicator(
             "macd": "MACD", "macds": "MACD_Signal", "macdh": "MACD_Hist",
             "boll": "Real Middle Band", "boll_ub": "Real Upper Band", "boll_lb": "Real Lower Band",
             "rsi": "RSI", "atr": "ATR", "close_10_ema": "EMA",
-            "close_50_sma": "SMA", "close_200_sma": "SMA"
+            "close_50_sma": "SMA", "close_200_sma": "SMA", "close_20_sma": "SMA",
+            "mfi": "MFI", "dx_14": "ADX",
+            "kdjk": "SlowK", "kdjd": "SlowD",
+            "cci": "CCI", "wr_14": "WILLR", "close_10_roc": "ROC",
         }
 
         target_col_name = col_name_map.get(indicator)
