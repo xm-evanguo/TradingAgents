@@ -86,7 +86,7 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
         self.assertEqual(plan["deep_provider"], "minimax")
         self.assertEqual(plan["deep_model"], "MiniMax-M2.7")
         self.assertEqual(plan["quick_provider"], "minimax")
-        self.assertEqual(plan["quick_model"], "MiniMax-M2.7-highspeed")
+        self.assertEqual(plan["quick_model"], "MiniMax-M2.7")
 
     def test_api_key_priority_uses_minimax_before_deepseek(self) -> None:
         with patch(
@@ -102,7 +102,7 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
         self.assertEqual(plan["deep_provider"], "minimax")
         self.assertEqual(plan["deep_model"], "MiniMax-M2.7")
         self.assertEqual(plan["quick_provider"], "minimax")
-        self.assertEqual(plan["quick_model"], "MiniMax-M2.7-highspeed")
+        self.assertEqual(plan["quick_model"], "MiniMax-M2.7")
 
     def test_factory_supports_minimax_direct_provider(self) -> None:
         client = create_llm_client("minimax", "MiniMax-M2.7")

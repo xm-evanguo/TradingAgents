@@ -61,7 +61,7 @@ python test.py
 - Model/provider selection is automatic by default. Do not add new prompts that ask users to manually pick deep/quick models in CLI workflows.
 - Routing order:
   - Deep priority: Codex OAuth -> Gemini CLI OAuth -> API-key fallback priority `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
-  - Quick priority: Gemini CLI OAuth (`gemini-3-flash-preview`) -> API-key fallback priority `MiniMax-M2.7-highspeed` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
+  - Quick priority: Gemini CLI OAuth (`gemini-3-flash-preview`) -> API-key fallback priority `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
   - Example combined behavior: if Codex OAuth and Gemini CLI OAuth are both available, use deep=`gpt-5.4` (provider `codex`) and quick=`gemini-3-flash-preview` (provider `google-gemini-cli`)
 - Keep these rules consistent across `cli/main.py`, `tradingagents/llm_clients/model_router.py`, `README.md`, and skill docs when making changes.
 

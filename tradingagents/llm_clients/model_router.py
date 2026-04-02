@@ -25,7 +25,7 @@ def _api_key_model(provider: str, role: str) -> str:
     if provider == "kimi":
         return "kimi-k2.5"
     if provider == "minimax":
-        return "MiniMax-M2.7" if role == "deep" else "MiniMax-M2.7-highspeed"
+        return "MiniMax-M2.7"
     if provider == "deepseek":
         return "deepseek-reasoner" if role == "deep" else "deepseek-chat"
     raise ValueError(f"Unsupported API-key provider: {provider}")
