@@ -210,6 +210,7 @@ export ALPHA_VANTAGE_API_KEY=...   # Alpha Vantage (market data)
 ### Automatic LLM Routing
 
 TradingAgents now auto-selects provider/model routes. The CLI no longer asks you to manually choose models.
+If a CLI run does not explicitly override the model, TradingAgents tries the highest-priority default route first and automatically falls through to the next provider/model in the configured order whenever the current default route cannot be used because its auth or API-key requirement is unavailable.
 
 Routing priority:
 
@@ -231,7 +232,7 @@ python -m cli.main
 ```
 You will see a screen where you can select tickers, date, analyst team, and research depth.
 Research depth maps to debate/discussion rounds: `Deep = 3`, `Shallow = 1`.
-LLM provider/model routing is resolved automatically from available auth/API keys.
+LLM provider/model routing is resolved automatically from available auth/API keys, and when you do not override models manually the CLI advances through the documented routing order until it finds the first usable route.
 Manual analyst scripts and graph-driven workflows now share the same default analysis windows: market data/indicators use the prior `60` days ending on `trade_date`, company/global news use the prior `7` days, fundamentals use `trade_date` as the snapshot date, and social analysis uses `trade_date` with recent-news context over the prior `7` days.
 
 For e2e smoke testing, use this preset:
