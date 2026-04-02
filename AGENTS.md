@@ -54,13 +54,14 @@ python test.py
 - Copy `.env.example` to `.env` and set required keys (`OPENAI_API_KEY`, `ALPHA_VANTAGE_API_KEY`, etc.) only for local fallback workflows.
 - Prefer `DOPPLER_PROJECT` + `DOPPLER_CONFIG` (and optional `DOPPLER_TOKEN`) so runtime secrets are loaded from Doppler; explicit process env still wins over Doppler, and Doppler overrides `.env`.
 - Set `DOPPLER_ENABLED=0` when you intentionally want a local-only `.env` run without fetching Doppler secrets.
+- Keep `KIMI_CODING_API_KEY` reserved for Claude Code only; TradingAgents should only use `MOONSHOT_API_KEY` for direct Kimi API access and must not route through `kimi-coding`.
 - Never commit secrets, local report outputs, or provider tokens.
 
 ## LLM Routing Rules
 - Model/provider selection is automatic by default. Do not add new prompts that ask users to manually pick deep/quick models in CLI workflows.
 - Routing order:
-  - Deep priority: Codex OAuth -> Gemini CLI OAuth -> API-key fallback priority `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
-  - Quick priority: Gemini CLI OAuth (`gemini-3-flash-preview`) -> API-key fallback priority `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
+  - Deep priority: Codex OAuth -> Gemini CLI OAuth -> API-key fallback priority `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
+  - Quick priority: Gemini CLI OAuth (`gemini-3-flash-preview`) -> API-key fallback priority `MiniMax-M2.7-highspeed` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
   - Example combined behavior: if Codex OAuth and Gemini CLI OAuth are both available, use deep=`gpt-5.4` (provider `codex`) and quick=`gemini-3-flash-preview` (provider `google-gemini-cli`)
 - Keep these rules consistent across `cli/main.py`, `tradingagents/llm_clients/model_router.py`, `README.md`, and skill docs when making changes.
 

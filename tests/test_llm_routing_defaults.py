@@ -72,6 +72,44 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
         self.assertEqual(plan["quick_provider"], "kimi")
         self.assertEqual(plan["quick_model"], "kimi-k2.5")
 
+    def test_api_key_priority_prefers_minimax_over_kimi(self) -> None:
+        with patch(
+            "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
+            side_effect=[False, False],
+        ), patch.dict(
+            "os.environ",
+            {"MINIMAX_API_KEY": "minimax-key", "MOONSHOT_API_KEY": "kimi-key"},
+            clear=True,
+        ):
+            plan = resolve_llm_plan()
+
+        self.assertEqual(plan["deep_provider"], "minimax")
+        self.assertEqual(plan["deep_model"], "MiniMax-M2.7")
+        self.assertEqual(plan["quick_provider"], "minimax")
+        self.assertEqual(plan["quick_model"], "MiniMax-M2.7-highspeed")
+
+    def test_api_key_priority_uses_minimax_before_deepseek(self) -> None:
+        with patch(
+            "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
+            side_effect=[False, False],
+        ), patch.dict(
+            "os.environ",
+            {"MINIMAX_API_KEY": "minimax-key", "DEEPSEEK_API_KEY": "deepseek-key"},
+            clear=True,
+        ):
+            plan = resolve_llm_plan()
+
+        self.assertEqual(plan["deep_provider"], "minimax")
+        self.assertEqual(plan["deep_model"], "MiniMax-M2.7")
+        self.assertEqual(plan["quick_provider"], "minimax")
+        self.assertEqual(plan["quick_model"], "MiniMax-M2.7-highspeed")
+
+    def test_factory_supports_minimax_direct_provider(self) -> None:
+        client = create_llm_client("minimax", "MiniMax-M2.7")
+
+        self.assertEqual(client.provider, "minimax")
+        self.assertEqual(client.model, "MiniMax-M2.7")
+
     def test_codex_pi_ai_spec_uses_chatgpt_backend(self) -> None:
         client = PiAiClient(provider_id="openai-codex", model_id=DEFAULT_CODEX_MODEL)
 
@@ -114,6 +152,12 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
             payload["context"]["systemPrompt"],
             "You are a helpful assistant.",
         )
+
+    def test_kimi_coding_provider_is_rejected(self) -> None:
+        client = PiAiClient(provider_id="kimi-coding", model_id="kimi-k2.5")
+
+        with self.assertRaisesRegex(ValueError, "reserved for Claude Code"):
+            client._build_model_spec()
 
 
 if __name__ == "__main__":

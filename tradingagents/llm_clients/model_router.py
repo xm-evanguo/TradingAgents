@@ -7,6 +7,7 @@ from .pi_ai_server_manager import (
 )
 
 _API_KEY_PROVIDER_PRIORITY = (
+    ("minimax", "MINIMAX_API_KEY", "https://api.minimax.io/v1"),
     ("kimi", "MOONSHOT_API_KEY", "https://api.moonshot.ai/v1"),
     ("deepseek", "DEEPSEEK_API_KEY", "https://api.deepseek.com/v1"),
 )
@@ -23,6 +24,8 @@ def _has_pi_ai_oauth(provider_id: str, server_url: str) -> bool:
 def _api_key_model(provider: str, role: str) -> str:
     if provider == "kimi":
         return "kimi-k2.5"
+    if provider == "minimax":
+        return "MiniMax-M2.7" if role == "deep" else "MiniMax-M2.7-highspeed"
     if provider == "deepseek":
         return "deepseek-reasoner" if role == "deep" else "deepseek-chat"
     raise ValueError(f"Unsupported API-key provider: {provider}")
@@ -84,6 +87,6 @@ def resolve_llm_plan() -> Dict[str, Optional[str]]:
 
     raise RuntimeError(
         "No available LLM route. "
-        "Deep requires codex/gemini-cli auth or API keys for kimi/deepseek. "
-        "Quick requires gemini-cli auth or API keys for kimi/deepseek."
+        "Deep requires codex/gemini-cli auth or API keys for minimax/kimi/deepseek. "
+        "Quick requires gemini-cli auth or API keys for minimax/kimi/deepseek."
     )

@@ -10,7 +10,7 @@ DEFAULT_CONFIG = {
     # LLM settings
     # Providers: google-gemini-cli (OAuth via pi-ai-server), codex (OAuth via pi-ai-server),
     #            openai, google, xai (API key via pi-ai-server),
-    #            kimi, deepseek (direct API)
+    #            kimi, minimax, deepseek (direct API)
     "llm_provider": "google-gemini-cli",
     "deep_think_llm": "gemini-2.5-pro",
     "quick_think_llm": "gemini-2.5-flash",

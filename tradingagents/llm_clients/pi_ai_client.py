@@ -12,7 +12,7 @@ start it manually and point PI_AI_SERVER_URL to the running instance.
 
 For OAuth providers (google-gemini-cli, openai-codex) the client fetches a
 fresh token from /auth/token on every call; pi-ai-server handles refresh.
-For API-key providers (openai, google, xai, kimi-coding) pass the key via
+For API-key providers (openai, google, xai) pass the key via
 options.apiKey (read from env here).
 """
 
@@ -53,7 +53,6 @@ _APIKEY_ENV: Dict[str, str] = {
     "openai": "OPENAI_API_KEY",
     "google": "GOOGLE_API_KEY",
     "xai": "XAI_API_KEY",
-    "kimi-coding": "MOONSHOT_API_KEY",
 }
 
 # ── pi-ai model descriptors keyed by (provider_id, model_id) ─────────────────
@@ -108,16 +107,6 @@ _MODEL_SPECS: Dict[str, Dict[str, Any]] = {
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
         "contextWindow": 131072,
-        "maxTokens": 32768,
-    },
-    "kimi-coding": {
-        "api": "openai-completions",
-        "provider": "kimi-coding",
-        "baseUrl": "https://api.moonshot.ai/v1",
-        "reasoning": False,
-        "input": ["text"],
-        "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-        "contextWindow": 128000,
         "maxTokens": 32768,
     },
 }
@@ -238,7 +227,7 @@ class PiAiClient(BaseChatModel):
     """LangChain ChatModel that calls the pi-ai-server local HTTP service.
 
     Supports OAuth providers (google-gemini-cli, openai-codex) and
-    API-key providers (openai, google, xai, kimi-coding).
+    API-key providers (openai, google, xai).
     """
 
     provider_id: str
@@ -280,8 +269,15 @@ class PiAiClient(BaseChatModel):
         new._bound_tools = pi_tools
         return new
 
+    def _ensure_supported_provider(self) -> None:
+        if self.provider_id == "kimi-coding":
+            raise ValueError(
+                "Provider 'kimi-coding' is reserved for Claude Code and is unsupported in TradingAgents."
+            )
+
     def _get_api_key(self) -> Optional[str]:
         """Return the API key to pass in options (None for OAuth providers)."""
+        self._ensure_supported_provider()
         if self.provider_id in _OAUTH_PROVIDERS:
             return _get_oauth_token(self.provider_id, self.server_url)
         env_var = _APIKEY_ENV.get(self.provider_id)
@@ -291,6 +287,7 @@ class PiAiClient(BaseChatModel):
 
     def _build_model_spec(self) -> dict:
         """Build the pi-ai Model object for the current provider/model."""
+        self._ensure_supported_provider()
         spec = dict(_MODEL_SPECS.get(self.provider_id, {
             "api": "openai-completions",
             "provider": self.provider_id,

@@ -41,7 +41,7 @@ def create_llm_client(
 
     Args:
         provider: LLM provider (google-gemini-cli, codex, openai, google, xai,
-                  kimi, deepseek, ollama, openrouter, anthropic)
+                  kimi, minimax, deepseek, ollama, openrouter, anthropic)
         model: Model name/identifier
         base_url: Optional base URL for API endpoint
         **kwargs: Additional provider-specific arguments
@@ -70,7 +70,7 @@ def create_llm_client(
         )
 
     # ── Direct API providers ─────────────────────────────────────────────────
-    if provider_lower in ("kimi", "deepseek", "ollama", "openrouter"):
+    if provider_lower in ("kimi", "minimax", "deepseek", "ollama", "openrouter"):
         return OpenAIClient(model, base_url, provider=provider_lower, **kwargs)
 
     if provider_lower == "anthropic":

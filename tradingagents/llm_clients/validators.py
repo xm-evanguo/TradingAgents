@@ -13,7 +13,6 @@ _PI_AI_PROVIDERS = {
     "openai",
     "google",
     "xai",
-    "kimi-coding",
 }
 
 VALID_MODELS = {
