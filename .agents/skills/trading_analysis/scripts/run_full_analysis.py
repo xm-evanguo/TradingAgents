@@ -99,6 +99,8 @@ def main():
     config["llm_provider"] = llm_plan["deep_provider"]
     config["deep_think_provider"] = llm_plan["deep_provider"]
     config["quick_think_provider"] = llm_plan["quick_provider"]
+    config["deep_think_candidates"] = llm_plan.get("deep_candidates")
+    config["quick_think_candidates"] = llm_plan.get("quick_candidates")
     config["deep_backend_url"] = llm_plan["deep_backend_url"]
     config["quick_backend_url"] = llm_plan["quick_backend_url"]
     config["deep_think_llm"] = llm_plan["deep_model"]

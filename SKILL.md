@@ -73,7 +73,7 @@ Current routing intent in this repo is:
 
 - Deep priority: Codex OAuth -> Gemini CLI OAuth -> `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
 - Quick priority: Gemini CLI OAuth (`gemini-3-flash-preview`) -> `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
-- If the CLI does not explicitly override the model, it should try the highest-priority default route first and then automatically fall through to the next provider/model in order whenever the current default route cannot be used because the needed auth or API key is unavailable.
+- If the CLI does not explicitly override the model, it should try the highest-priority default route first and then automatically fall through to the next provider/model in order whenever the current default route cannot be used, or when a request to that route fails for provider/model availability, auth, API-key, rate-limit, or similar upstream request errors.
 
 Do not introduce workflows that ask the user to manually pick deep or quick models unless the task is specifically about debugging routing.
 

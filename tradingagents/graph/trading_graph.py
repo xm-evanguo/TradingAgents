@@ -9,6 +9,7 @@ from typing import Dict, Any, Tuple, List, Optional
 from langgraph.prebuilt import ToolNode
 
 from tradingagents.llm_clients import create_llm_client
+from tradingagents.llm_clients.fallback_chat_model import FallbackChatModel
 
 from tradingagents.agents import *
 from tradingagents.default_config import DEFAULT_CONFIG
@@ -93,29 +94,20 @@ class TradingAgentsGraph:
         deep_base_url = self.config.get("deep_backend_url", self.config.get("backend_url"))
         quick_base_url = self.config.get("quick_backend_url", self.config.get("backend_url"))
 
-        deep_llm_kwargs = self._get_provider_kwargs(deep_provider)
-        quick_llm_kwargs = self._get_provider_kwargs(quick_provider)
-
-        # Add callbacks to kwargs if provided (passed to LLM constructor)
-        if self.callbacks:
-            deep_llm_kwargs["callbacks"] = self.callbacks
-            quick_llm_kwargs["callbacks"] = self.callbacks
-
-        deep_client = create_llm_client(
+        self.deep_thinking_llm = self._create_role_llm(
+            role="deep",
             provider=deep_provider,
             model=self.config["deep_think_llm"],
             base_url=deep_base_url,
-            **deep_llm_kwargs,
+            candidates=self.config.get("deep_think_candidates"),
         )
-        quick_client = create_llm_client(
+        self.quick_thinking_llm = self._create_role_llm(
+            role="quick",
             provider=quick_provider,
             model=self.config["quick_think_llm"],
             base_url=quick_base_url,
-            **quick_llm_kwargs,
+            candidates=self.config.get("quick_think_candidates"),
         )
-
-        self.deep_thinking_llm = deep_client.get_llm()
-        self.quick_thinking_llm = quick_client.get_llm()
         
         # Initialize memories
         self.bull_memory = FinancialSituationMemory("bull_memory", self.config)
@@ -181,6 +173,66 @@ class TradingAgentsGraph:
                 kwargs["reasoning_effort"] = reasoning_effort
 
         return kwargs
+
+    def _build_candidate_specs(
+        self,
+        *,
+        provider: str,
+        model: str,
+        base_url: Optional[str],
+        candidates: Optional[List[Dict[str, Any]]],
+    ) -> List[Dict[str, Any]]:
+        raw_candidates = candidates or [
+            {
+                "provider": provider,
+                "model": model,
+                "backend_url": base_url or "",
+            }
+        ]
+
+        candidate_specs: List[Dict[str, Any]] = []
+        for candidate in raw_candidates:
+            candidate_provider = candidate.get("provider") or provider
+            llm_kwargs = self._get_provider_kwargs(candidate_provider)
+            if self.callbacks:
+                llm_kwargs["callbacks"] = self.callbacks
+            candidate_specs.append(
+                {
+                    "provider": candidate_provider,
+                    "model": candidate.get("model") or model,
+                    "base_url": candidate.get("backend_url") or candidate.get("base_url") or base_url,
+                    "llm_kwargs": llm_kwargs,
+                }
+            )
+
+        return candidate_specs
+
+    def _create_role_llm(
+        self,
+        *,
+        role: str,
+        provider: str,
+        model: str,
+        base_url: Optional[str],
+        candidates: Optional[List[Dict[str, Any]]],
+    ):
+        candidate_specs = self._build_candidate_specs(
+            provider=provider,
+            model=model,
+            base_url=base_url,
+            candidates=candidates,
+        )
+        if len(candidate_specs) > 1:
+            return FallbackChatModel(candidates=candidate_specs, role=role)
+
+        candidate = candidate_specs[0]
+        client = create_llm_client(
+            provider=candidate["provider"],
+            model=candidate["model"],
+            base_url=candidate.get("base_url"),
+            **candidate.get("llm_kwargs", {}),
+        )
+        return client.get_llm()
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
         """Create tool nodes for different data sources using abstract methods."""

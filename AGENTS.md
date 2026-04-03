@@ -63,7 +63,7 @@ python test.py
   - Deep priority: Codex OAuth -> Gemini CLI OAuth -> API-key fallback priority `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-reasoner`)
   - Quick priority: Gemini CLI OAuth (`gemini-3-flash-preview`) -> API-key fallback priority `MiniMax-M2.7` -> `kimi-k2.5` -> DeepSeek (`deepseek-chat`)
   - Example combined behavior: if Codex OAuth and Gemini CLI OAuth are both available, use deep=`gpt-5.4` (provider `codex`) and quick=`gemini-3-flash-preview` (provider `google-gemini-cli`)
-- If a CLI run does not explicitly override the model, it must try the highest-priority default route first and automatically fall through to the next provider/model in the configured order whenever the current default route cannot be used because its auth or API-key requirement is unavailable.
+- If a CLI run does not explicitly override the model, it must try the highest-priority default route first and automatically fall through to the next provider/model in the configured order whenever the current default route cannot be used, or when a request to that route fails for provider/model availability, auth, API-key, rate-limit, or similar upstream request errors.
 - Keep these rules consistent across `cli/main.py`, `tradingagents/llm_clients/model_router.py`, `README.md`, and skill docs when making changes.
 
 ## Research Depth Rules

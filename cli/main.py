@@ -571,6 +571,8 @@ def get_user_selections():
         "quick_provider": llm_plan["quick_provider"],
         "deep_backend_url": llm_plan["deep_backend_url"],
         "quick_backend_url": llm_plan["quick_backend_url"],
+        "deep_candidates": llm_plan.get("deep_candidates"),
+        "quick_candidates": llm_plan.get("quick_candidates"),
         "shallow_thinker": llm_plan["quick_model"],
         "deep_thinker": llm_plan["deep_model"],
         "google_thinking_level": thinking_level,
@@ -899,6 +901,8 @@ def run_analysis():
     config["llm_provider"] = selections["llm_provider"].lower()
     config["deep_think_provider"] = selections.get("deep_provider")
     config["quick_think_provider"] = selections.get("quick_provider")
+    config["deep_think_candidates"] = selections.get("deep_candidates")
+    config["quick_think_candidates"] = selections.get("quick_candidates")
     config["deep_backend_url"] = selections.get("deep_backend_url")
     config["quick_backend_url"] = selections.get("quick_backend_url")
     # Provider-specific thinking configuration

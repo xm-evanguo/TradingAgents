@@ -27,6 +27,41 @@ class ModelRoutingDefaultsTest(unittest.TestCase):
         self.assertEqual(plan["deep_model"], DEFAULT_CODEX_MODEL)
         self.assertEqual(plan["quick_model"], GEMINI_QUICK_MODEL)
 
+    def test_plan_includes_ordered_fallback_candidates(self) -> None:
+        with patch(
+            "tradingagents.llm_clients.model_router._has_pi_ai_oauth",
+            side_effect=[True, True],
+        ), patch.dict(
+            "os.environ",
+            {
+                "MINIMAX_API_KEY": "minimax-key",
+                "MOONSHOT_API_KEY": "kimi-key",
+                "DEEPSEEK_API_KEY": "deepseek-key",
+            },
+            clear=True,
+        ):
+            plan = resolve_llm_plan()
+
+        self.assertEqual(
+            [(candidate["provider"], candidate["model"]) for candidate in plan["deep_candidates"]],
+            [
+                ("codex", DEFAULT_CODEX_MODEL),
+                ("google-gemini-cli", "gemini-3.1-pro-preview"),
+                ("minimax", "MiniMax-M2.7"),
+                ("kimi", "kimi-k2.5"),
+                ("deepseek", "deepseek-reasoner"),
+            ],
+        )
+        self.assertEqual(
+            [(candidate["provider"], candidate["model"]) for candidate in plan["quick_candidates"]],
+            [
+                ("google-gemini-cli", GEMINI_QUICK_MODEL),
+                ("minimax", "MiniMax-M2.7"),
+                ("kimi", "kimi-k2.5"),
+                ("deepseek", "deepseek-chat"),
+            ],
+        )
+
     def test_codex_deep_falls_back_to_api_key_quick_without_gemini_auth(self) -> None:
         with patch(
             "tradingagents.llm_clients.model_router._has_pi_ai_oauth",

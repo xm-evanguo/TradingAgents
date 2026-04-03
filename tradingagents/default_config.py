@@ -16,6 +16,8 @@ DEFAULT_CONFIG = {
     "quick_think_llm": "gemini-2.5-flash",
     "deep_think_provider": None,
     "quick_think_provider": None,
+    "deep_think_candidates": None,
+    "quick_think_candidates": None,
     "backend_url": None,
     "deep_backend_url": None,
     "quick_backend_url": None,
