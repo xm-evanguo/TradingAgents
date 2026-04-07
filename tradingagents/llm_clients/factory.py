@@ -70,11 +70,11 @@ def create_llm_client(
         )
 
     # ── Direct API providers ─────────────────────────────────────────────────
-    if provider_lower in ("kimi", "minimax", "deepseek", "ollama", "openrouter"):
+    if provider_lower in ("kimi", "deepseek", "ollama", "openrouter"):
         return OpenAIClient(model, base_url, provider=provider_lower, **kwargs)
 
-    if provider_lower == "anthropic":
-        return AnthropicClient(model, base_url, provider="anthropic", **kwargs)
+    if provider_lower in ("anthropic", "minimax"):
+        return AnthropicClient(model, base_url, provider=provider_lower, **kwargs)
 
     raise ValueError(f"Unsupported LLM provider: {provider}")
 

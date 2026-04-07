@@ -49,7 +49,7 @@ class UnifiedChatOpenAI(ChatOpenAI):
 
 
 class OpenAIClient(BaseLLMClient):
-    """Client for OpenAI-compatible providers (including Kimi, MiniMax, and DeepSeek)."""
+    """Client for OpenAI-compatible providers (including Kimi and DeepSeek)."""
 
     def __init__(
         self,
@@ -89,11 +89,6 @@ class OpenAIClient(BaseLLMClient):
         elif self.provider == "deepseek":
             llm_kwargs["base_url"] = "https://api.deepseek.com/v1"
             api_key = os.environ.get("DEEPSEEK_API_KEY")
-            if api_key:
-                llm_kwargs["api_key"] = api_key
-        elif self.provider == "minimax":
-            llm_kwargs["base_url"] = "https://api.minimax.io/v1"
-            api_key = os.environ.get("MINIMAX_API_KEY")
             if api_key:
                 llm_kwargs["api_key"] = api_key
         elif self.base_url:

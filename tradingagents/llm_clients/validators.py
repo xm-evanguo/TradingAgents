@@ -20,6 +20,9 @@ VALID_MODELS = {
         "deepseek-chat",
         "deepseek-reasoner",
     ],
+    "minimax": [
+        "MiniMax-M2.7",
+    ],
 }
 
 

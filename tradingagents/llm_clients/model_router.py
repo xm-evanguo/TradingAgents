@@ -7,7 +7,7 @@ from .pi_ai_server_manager import (
 )
 
 _API_KEY_PROVIDER_PRIORITY = (
-    ("minimax", "MINIMAX_API_KEY", "https://api.minimax.io/v1"),
+    ("minimax", "MINIMAX_API_KEY", "https://api.minimax.io/anthropic"),
     ("kimi", "MOONSHOT_API_KEY", "https://api.moonshot.ai/v1"),
     ("deepseek", "DEEPSEEK_API_KEY", "https://api.deepseek.com/v1"),
 )
